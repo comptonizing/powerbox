@@ -14,20 +14,26 @@
 // Dew heater 2 PWM
 #define DH2PWM 10
 
+// MCP4725 I2C address
+#define DACADDR 0x60
+
+// BME280 I2C address
+#define 0x76
+
 
 void setup(void)
 {
   Serial.begin(9600);
 
-  pinMode(6, OUTPUT);
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  pinMode(10, OUTPUT);
+  pinMode(RAIL12V, OUTPUT);
+  pinMode(ADJ, OUTPUT);
+  pinMode(DH1PWM, OUTPUT);
+  pinMode(DH2PWM, OUTPUT);
 
-  digitalWrite(6, LOW); // 4x12V off
-  digitalWrite(8, LOW); // var off
-  digitalWrite(9, LOW); // DH1 off
-  digitalWrite(10, LOW); // DH2 off
+  digitalWrite(RAIL12V, LOW); // 4x12V off
+  digitalWrite(ADJ, LOW); // var off
+  digitalWrite(DH1PWM, LOW); // DH1 off
+  digitalWrite(DH2PWM, LOW); // DH2 off
 }
 
 void loop(void)
