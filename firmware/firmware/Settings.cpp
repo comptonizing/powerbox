@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "Settings.h"
 
 #define OFFSET_MAGIC 0
 static uint16_t __magic = 0b1110110101010010;
