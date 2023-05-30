@@ -19,6 +19,9 @@ void TemperatureSensor::update(bool block) {
     }
   }
   m_lastTemperature = sensor.getTempCByIndex(0);
+  if ( m_lastTemperature == DEVICE_DISCONNECTED_C ) {
+    m_lastTemperature = NAN;
+  }
   sensor.requestTemperatures();
 }
 
