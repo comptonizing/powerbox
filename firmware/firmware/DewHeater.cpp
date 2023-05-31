@@ -84,7 +84,7 @@ void DewHeater::updateWithPID(float targetTemperature) {
 }
 
 void DewHeater::updateDewpoint() {
-  float dewpoint = Devices::instance().environmentSensor.currentDewpoint();
+  float dewpoint = Devices::i().environmentSensor.currentDewpoint();
   float heaterTemperature = m_sensor.currentTemperature();
   if ( isnan(dewpoint) || isnan(heaterTemperature) ) {
     // Something's wrong with the sensor(s), let's go to full power
@@ -95,7 +95,7 @@ void DewHeater::updateDewpoint() {
 }
 
 void DewHeater::updateAmbient() {
-  float ambient = Devices::instance().environmentSensor.currentTemperature();
+  float ambient = Devices::i().environmentSensor.currentTemperature();
   float heaterTemperature = m_sensor.currentTemperature();
   if ( isnan(ambient) || isnan(heaterTemperature) ) {
     // Something's wrong with the sensor(s), let's go to full power
@@ -106,8 +106,8 @@ void DewHeater::updateAmbient() {
 }
 
 void DewHeater::updateMidpoint() {
-  float dewpoint = Devices::instance().environmentSensor.currentDewpoint();
-  float ambient = Devices::instance().environmentSensor.currentTemperature();
+  float dewpoint = Devices::i().environmentSensor.currentDewpoint();
+  float ambient = Devices::i().environmentSensor.currentTemperature();
   float heaterTemperature = m_sensor.currentTemperature();
   if ( isnan(dewpoint) || isnan(ambient) || isnan(heaterTemperature) ) {
     // Something's wrong with the sensor(s), let's go to full power

@@ -172,7 +172,7 @@ class DewHeater {
 
 class Devices {
   public:
-    static Devices &instance();
+    static Devices &i();
     VoltageSensor voltageSensor = VoltageSensor(EXT_VOLTAGE);
     EnvironmentSensor environmentSensor = EnvironmentSensor(BME280ADDR);
     Rail12V rail12V = Rail12V(RAIL12V);
