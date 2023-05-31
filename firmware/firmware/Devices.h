@@ -121,6 +121,7 @@ class DewHeater {
     void update();
     float currentDutyCyclePercent();
     unsigned char currentDutyCycle();
+    float currentTemperature();
 
     typedef enum {
       FIXED,
@@ -161,8 +162,12 @@ class DewHeater {
     void updateMidpoint();
     void updateSlave();
 
-    float m_targetTemperature = 0.0;
-    float m_actualTemperature = 0.0;
+    double m_targetTemperature = 0.0;
+    double m_actualTemperature = 0.0;
+    double m_lastTemperature = 0.0;
+    double m_pidDutyCycle = m_currentDutyCycle;
+    PID m_pid;
+    void updateWithPID(float targetTemperature);
 };
 
 class Devices {

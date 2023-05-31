@@ -1,7 +1,8 @@
 #include "Devices.h"
 
 DewHeater::DewHeater(unsigned char pin, unsigned char temperaturePin) :
-  m_pin(pin), m_temperaturePin(temperaturePin), m_sensor(m_temperaturePin) {
+  m_pin(pin), m_temperaturePin(temperaturePin), m_sensor(m_temperaturePin),
+  m_pid(&m_lastTemperature, &m_pidDutyCycle, &m_targetTemperature, 1., 0.05, 0.25, DIRECT) {
   pinMode(m_pin, OUTPUT);
   setDutyCycle(0);
 }
@@ -54,16 +55,19 @@ void DewHeater::setFixed(float dutyCycle) {
 
 void DewHeater::setDewpoint(float offset) {
   m_offsetDewpoint = offset;
+  m_pid.SetMode(AUTOMATIC);
   m_mode = DEWPOINT;
 }
 
 void DewHeater::setAmbient(float offset) {
   m_offsetAmbient = offset;
+  m_pid.SetMode(AUTOMATIC);
   m_mode = AMBIENT;
 }
 
 void DewHeater::setMidpoint(float offset) {
   m_offsetMidpoint = offset;
+  m_pid.SetMode(AUTOMATIC);
   m_mode = MIDPOINT;
 }
 
@@ -72,13 +76,45 @@ void DewHeater::setSlave(unsigned char (*callback)()) {
   m_mode = SLAVE;
 }
 
+void DewHeater::updateWithPID(float targetTemperature) {
+  m_targetTemperature = targetTemperature;
+  m_lastTemperature = m_sensor.currentTemperature();
+  m_pid.Compute();
+  setDutyCycle(static_cast<unsigned char>(m_pidDutyCycle));
+}
+
 void DewHeater::updateDewpoint() {
+  float dewpoint = Devices::instance().environmentSensor.currentDewpoint();
+  float heaterTemperature = m_sensor.currentTemperature();
+  if ( isnan(dewpoint) || isnan(heaterTemperature) ) {
+    // Something's wrong with the sensor(s), let's go to full power
+    setDutyCycle(255);
+    return;
+  }
+  updateWithPID(dewpoint + m_offsetDewpoint);
 }
 
 void DewHeater::updateAmbient() {
+  float ambient = Devices::instance().environmentSensor.currentTemperature();
+  float heaterTemperature = m_sensor.currentTemperature();
+  if ( isnan(ambient) || isnan(heaterTemperature) ) {
+    // Something's wrong with the sensor(s), let's go to full power
+    setDutyCycle(255);
+    return;
+  }
+  updateWithPID(ambient - m_offsetAmbient);
 }
 
 void DewHeater::updateMidpoint() {
+  float dewpoint = Devices::instance().environmentSensor.currentDewpoint();
+  float ambient = Devices::instance().environmentSensor.currentTemperature();
+  float heaterTemperature = m_sensor.currentTemperature();
+  if ( isnan(dewpoint) || isnan(ambient) || isnan(heaterTemperature) ) {
+    // Something's wrong with the sensor(s), let's go to full power
+    setDutyCycle(255);
+    return;
+  }
+  updateWithPID( 0.5 * (ambient + dewpoint) + m_offsetMidpoint);
 }
 
 void DewHeater::updateSlave() {
@@ -102,4 +138,8 @@ void DewHeater::update() {
       updateSlave();
       break;
   }
+}
+
+float DewHeater::currentTemperature() {
+  return m_sensor.currentTemperature();
 }
