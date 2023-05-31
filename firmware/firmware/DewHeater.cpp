@@ -2,7 +2,7 @@
 
 DewHeater::DewHeater(unsigned char pin, unsigned char temperaturePin) :
   m_pin(pin), m_temperaturePin(temperaturePin), m_sensor(m_temperaturePin),
-  m_pid(&m_lastTemperature, &m_pidDutyCycle, &m_targetTemperature, 1., 0.05, 0.25, DIRECT) {
+  m_pid(&m_lastTemperature, &m_pidDutyCycle, &m_targetTemperature, 4., 1.0, 1.0, DIRECT) {
   pinMode(m_pin, OUTPUT);
   setDutyCycle(0);
 }
