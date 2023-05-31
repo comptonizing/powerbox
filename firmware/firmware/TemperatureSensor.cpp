@@ -1,4 +1,4 @@
-#include "TemperatureSensor.h"
+#include "Devices.h"
 
 TemperatureSensor::TemperatureSensor(unsigned char pin) :
   m_pin(pin), bus(pin), sensor(&bus) {

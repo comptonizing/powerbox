@@ -1,4 +1,4 @@
-#include "Adj.h"
+#include "Devices.h"
 
 Adj::Adj(uint8_t address, unsigned char pin) : m_address(address), m_pin(pin) {
   pinMode(pin, OUTPUT);

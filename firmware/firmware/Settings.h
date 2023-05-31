@@ -20,6 +20,7 @@ class Settings {
     uint16_t crcCalc(uint8_t *data, uint16_t n);
 
     bool m_RAIL12V_on = false;
+
     bool m_ADJ_on = false;
-    float m_ADJ_voltage = 5.0;
+    float m_ADJ_voltage = 0.0;
 };

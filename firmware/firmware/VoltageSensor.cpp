@@ -1,4 +1,4 @@
-#include "VoltageSensor.h"
+#include "Devices.h"
 
 VoltageSensor::VoltageSensor(uint8_t pin) : m_pin(pin) {
   setAref(EXTERNAL);

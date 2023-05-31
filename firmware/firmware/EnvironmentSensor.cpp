@@ -1,6 +1,7 @@
-#include "EnvironmentSensor.h"
+#include "Devices.h"
 
 EnvironmentSensor::EnvironmentSensor(unsigned char address) : m_address(address) {
+  connect();
 }
 
 bool EnvironmentSensor::isReachable() {
@@ -26,53 +27,98 @@ bool EnvironmentSensor::validHumidty(float humidity) {
   return ! ( isnan(humidity) || humidity > 99. || humidity < 1. );
 }
 
-float EnvironmentSensor::currentTemperature() {
+void EnvironmentSensor::updateTemperature() {
   float temp;
   if ( ! isReachable() ) {
-    return NAN;
+    m_lastTemperature = NAN;
+    return;
   }
   temp = device.readTemperature();
   if ( validTemperature(temp) ) {
-    return temp;
+    m_lastTemperature = temp;
+    return;
   }
   connect();
   temp = device.readTemperature();
   if ( validTemperature(temp) ) {
-    return temp;
+    m_lastTemperature = temp;
+    return;
   }
-  return NAN;
+  m_lastTemperature = NAN;
 }
 
-float EnvironmentSensor::currentPressure() {
+void EnvironmentSensor::updatePressure() {
   float pressure;
   if ( ! isReachable() ) {
-    return NAN;
+    m_lastPressure = NAN;
+    return;
   }
   pressure = device.readPressure();
   if ( validPressure(pressure) ) {
-    return pressure;
+    m_lastPressure = pressure;
+    return;
   }
   connect();
   pressure = device.readPressure();
   if ( validPressure(pressure) ) {
-    return pressure;
+    m_lastPressure = pressure;
+    return;
   }
-  return NAN;
+  m_lastPressure = NAN;
 }
 
-float EnvironmentSensor::currentHumidity() {
+void EnvironmentSensor::updateHumidity() {
   float humidity;
   if ( ! isReachable() ) {
-    return NAN;
+    m_lastHumidity = NAN;
+    return;
   }
   humidity = device.readHumidity();
   if ( validHumidty(humidity) ) {
-    return humidity;
+    m_lastHumidity = humidity;
+    return;
   }
   connect();
   humidity = device.readPressure();
   if ( validHumidty(humidity) ) {
-    return humidity;
+    m_lastHumidity = humidity;
+    return;
   }
-  return NAN;
+  m_lastHumidity = NAN;
+}
+
+void EnvironmentSensor::update() {
+  if ( (millis() - m_lastUpdate) >= m_updateInterval ) {
+    updateTemperature();
+    updatePressure();
+    updateHumidity();
+    updateDewpoint();
+  }
+}
+
+float EnvironmentSensor::currentTemperature() {
+  update();
+  return m_lastTemperature;
+}
+
+float EnvironmentSensor::currentPressure() {
+  update();
+  return m_lastPressure;
+}
+
+float EnvironmentSensor::currentHumidity() {
+  update();
+  return m_lastHumidity;
+}
+
+void EnvironmentSensor::updateDewpoint() {
+  // According to http://irtfweb.ifa.hawaii.edu/~tcs3/tcs3/Misc/Dewpoint_Calculation_Humidity_Sensor_E.pdf
+  float RH = currentHumidity();
+  float T = currentTemperature();
+  if ( isnan(RH) || isnan(T) ) {
+    m_lastDewpoint = NAN;
+    return;
+  }
+  float H = (log10(RH)-2)/0.4343 + (17.62*T)/(243.12+T);
+  float m_lastDewpoint = 243.12*H/(17.62-H);
 }
