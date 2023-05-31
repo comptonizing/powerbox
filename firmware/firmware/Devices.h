@@ -121,6 +121,7 @@ class DewHeater {
     float currentDutyCyclePercent();
     unsigned char currentDutyCycle();
     float currentTemperature();
+    float currentTargetTemperature();
 
     typedef enum {
       FIXED,

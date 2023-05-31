@@ -47,33 +47,39 @@ void DewHeater::setFixed(unsigned char dutyCycle) {
   m_mode = FIXED;
   m_currentDutyCycle = dutyCycle;
   setDutyCycle(dutyCycle);
+  update();
 }
 
 void DewHeater::setFixed(float dutyCycle) {
   setFixed(p2c(dutyCycle));
+  update();
 }
 
 void DewHeater::setDewpoint(float offset) {
   m_offsetDewpoint = offset;
   m_pid.SetMode(AUTOMATIC);
   m_mode = DEWPOINT;
+  update();
 }
 
 void DewHeater::setAmbient(float offset) {
   m_offsetAmbient = offset;
   m_pid.SetMode(AUTOMATIC);
   m_mode = AMBIENT;
+  update();
 }
 
 void DewHeater::setMidpoint(float offset) {
   m_offsetMidpoint = offset;
   m_pid.SetMode(AUTOMATIC);
   m_mode = MIDPOINT;
+  update();
 }
 
 void DewHeater::setSlave(unsigned char (*callback)()) {
   m_slaveCallback = callback;
   m_mode = SLAVE;
+  update();
 }
 
 void DewHeater::updateWithPID(float targetTemperature) {
@@ -142,4 +148,8 @@ void DewHeater::update() {
 
 float DewHeater::currentTemperature() {
   return m_sensor.currentTemperature();
+}
+
+float DewHeater::currentTargetTemperature() {
+  return m_targetTemperature;
 }
