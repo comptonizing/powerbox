@@ -1,8 +1,8 @@
 #include "Devices.h"
 
-Devices *Devices::instance() {
+Devices &Devices::instance() {
   static Devices currentInstance;
-  return &currentInstance;
+  return currentInstance;
 }
 
 Devices::Devices() {
