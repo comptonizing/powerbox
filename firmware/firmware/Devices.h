@@ -44,7 +44,7 @@ class EnvironmentSensor {
     float currentHumidity();
     float currentDewpoint();
     void connect();
-    void update();
+    void update(bool force = false);
   private:
     unsigned long m_updateInterval = 1000; // ms
     float m_lastTemperature = NAN;
@@ -55,7 +55,6 @@ class EnvironmentSensor {
     void updateTemperature();
     void updatePressure();
     void updateHumidity();
-    void updateDewpoint();
     bool isReachable();
     unsigned char m_address;
     Adafruit_BME280 device;

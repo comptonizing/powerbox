@@ -1,6 +1,6 @@
 #include "Devices.h"
 
-Devices &Devices::instance() {
+Devices &Devices::i() {
   static Devices currentInstance;
   return currentInstance;
 }

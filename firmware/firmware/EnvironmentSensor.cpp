@@ -2,6 +2,7 @@
 
 EnvironmentSensor::EnvironmentSensor(unsigned char address) : m_address(address) {
   connect();
+  update(true);
 }
 
 bool EnvironmentSensor::isReachable() {
@@ -10,9 +11,7 @@ bool EnvironmentSensor::isReachable() {
 }
 
 void EnvironmentSensor::connect() {
-  if ( ! device.begin(m_address) ) {
-    return;
-  }
+  device.begin(m_address);
 }
 
 bool EnvironmentSensor::validTemperature(float temp) {
@@ -53,13 +52,13 @@ void EnvironmentSensor::updatePressure() {
     m_lastPressure = NAN;
     return;
   }
-  pressure = device.readPressure();
+  pressure = device.readPressure() / 100.;
   if ( validPressure(pressure) ) {
     m_lastPressure = pressure;
     return;
   }
   connect();
-  pressure = device.readPressure();
+  pressure = device.readPressure() / 100.;
   if ( validPressure(pressure) ) {
     m_lastPressure = pressure;
     return;
@@ -79,7 +78,7 @@ void EnvironmentSensor::updateHumidity() {
     return;
   }
   connect();
-  humidity = device.readPressure();
+  humidity = device.readHumidity();
   if ( validHumidty(humidity) ) {
     m_lastHumidity = humidity;
     return;
@@ -87,12 +86,12 @@ void EnvironmentSensor::updateHumidity() {
   m_lastHumidity = NAN;
 }
 
-void EnvironmentSensor::update() {
-  if ( (millis() - m_lastUpdate) >= m_updateInterval ) {
+void EnvironmentSensor::update(bool force) {
+  if ( (millis() - m_lastUpdate) >= m_updateInterval || force ) {
     updateTemperature();
     updatePressure();
     updateHumidity();
-    updateDewpoint();
+    m_lastUpdate = millis();
   }
 }
 
@@ -111,14 +110,14 @@ float EnvironmentSensor::currentHumidity() {
   return m_lastHumidity;
 }
 
-void EnvironmentSensor::updateDewpoint() {
+float EnvironmentSensor::currentDewpoint() {
   // According to http://irtfweb.ifa.hawaii.edu/~tcs3/tcs3/Misc/Dewpoint_Calculation_Humidity_Sensor_E.pdf
   float RH = currentHumidity();
   float T = currentTemperature();
   if ( isnan(RH) || isnan(T) ) {
     m_lastDewpoint = NAN;
-    return;
+    return NAN;
   }
   float H = (log10(RH)-2)/0.4343 + (17.62*T)/(243.12+T);
-  float m_lastDewpoint = 243.12*H/(17.62-H);
+  return 243.12*H/(17.62-H);
 }
