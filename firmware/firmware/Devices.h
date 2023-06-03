@@ -133,11 +133,11 @@ class DewHeater {
     void setOffset(float offset);
 
     typedef enum {
-      FIXED,
-      DEWPOINT,
-      AMBIENT,
-      MIDPOINT,
-      SLAVE
+      FIXED = 0,
+      DEWPOINT = 1,
+      AMBIENT = 2,
+      MIDPOINT = 3,
+      SLAVE = 4
     } Mode;
 
     Mode currentMode();
