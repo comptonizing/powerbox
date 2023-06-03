@@ -69,3 +69,83 @@ Settings::Settings() {
 
 Settings::~Settings() {
 }
+
+void Settings::setRail12V() {
+  if ( m_RAIL12V_on ) {
+    Devices::i().rail12V.on();
+  } else {
+    Devices::i().rail12V.off();
+  }
+}
+
+void Settings::setAdj() {
+  Devices::i().adj.setVoltage(m_ADJ_voltage);
+  if ( m_ADJ_on ) {
+    Devices::i().adj.on();
+  } else {
+    Devices::i().adj.off();
+  }
+}
+
+void Settings::setDewHeater(DewHeater *heater, DewHeaterSettings *settings, DewHeater *master) {
+  heater->setFixedValue(settings->fixed);
+  heater->setDewpointOffset(settings->offsetDewpoint);
+  heater->setAmbientOffset(settings->offsetAmbient);
+  heater->setMidpointOffset(settings->offsetMidpoint);
+  heater->setOffset(settings->offset);
+  switch (settings->mode) {
+    case DewHeater::FIXED:
+      heater->setFixed(settings->fixed);
+      break;
+    case DewHeater::DEWPOINT:
+      heater->setDewpoint(settings->offsetDewpoint);
+      break;
+    case DewHeater::AMBIENT:
+      heater->setAmbient(settings->offsetAmbient);
+      break;
+    case DewHeater::MIDPOINT:
+      heater->setMidpoint(settings->offsetMidpoint);
+      break;
+    case DewHeater::SLAVE:
+      if ( master != nullptr ) {
+	heater->setSlave(master);
+      }
+      break;
+  }
+}
+
+void Settings::setDewHeaters() {
+  setDewHeater1();
+  setDewHeater2();
+}
+
+void Settings::setDewHeater1() {
+  DewHeater *dh1 = &Devices::i().dewHeater1;
+  DewHeater *dh2 = &Devices::i().dewHeater2;
+  if ( DH1.slave && DH2.slave ) {
+    // Both can't be slaves!
+    dh1->setFixed((float) 0.0);
+  }
+  setDewHeater(dh1, &DH1, dh2);
+}
+
+void Settings::setDewHeater2() {
+  DewHeater *dh1 = &Devices::i().dewHeater1;
+  DewHeater *dh2 = &Devices::i().dewHeater2;
+  if ( DH1.slave && DH2.slave ) {
+    // Both can't be slaves!
+    dh2->setFixed((float) 0.0);
+  }
+  setDewHeater(dh2, &DH1, dh1);
+}
+
+void Settings::setEnvironmentSensor() {
+  Devices::i().environmentSensor.setOffset(m_environmentSensorOffset);
+}
+
+void Settings::setDevices() {
+  setRail12V();
+  setAdj();
+  setDewHeaters();
+  setEnvironmentSensor();
+}
