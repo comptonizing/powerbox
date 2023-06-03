@@ -12,7 +12,6 @@ void Adj::off() {
 }
 
 void Adj::on() {
-  Serial.println("Setting pin " + String(m_pin) + " high");
   digitalWrite(m_pin, HIGH);
   m_isOn = true;
 }
@@ -39,7 +38,6 @@ void Adj::setVoltage(float voltage) {
     return;
   }
   adu = output2dac(voltage);
-  Serial.println("Setting voltage to " + String(voltage) + "V (" + String(adu) + "ADU)");
   dac.setVoltage(adu, false, 100000);
 }
 
