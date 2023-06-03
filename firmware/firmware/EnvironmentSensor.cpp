@@ -1,6 +1,7 @@
 #include "Devices.h"
 
-EnvironmentSensor::EnvironmentSensor(unsigned char address) : m_address(address) {
+EnvironmentSensor::EnvironmentSensor(unsigned char address, float offset) :
+  m_address(address), m_offset(offset) {
   connect();
   update(true);
 }
@@ -34,13 +35,13 @@ void EnvironmentSensor::updateTemperature() {
   }
   temp = device.readTemperature();
   if ( validTemperature(temp) ) {
-    m_lastTemperature = temp;
+    m_lastTemperature = temp + m_offset;
     return;
   }
   connect();
   temp = device.readTemperature();
   if ( validTemperature(temp) ) {
-    m_lastTemperature = temp;
+    m_lastTemperature = temp + m_offset;
     return;
   }
   m_lastTemperature = NAN;
@@ -120,4 +121,12 @@ float EnvironmentSensor::currentDewpoint() {
   }
   float H = (log10(RH)-2)/0.4343 + (17.62*T)/(243.12+T);
   return 243.12*H/(17.62-H);
+}
+
+float EnvironmentSensor::getOffset() {
+  return m_offset;
+}
+
+void EnvironmentSensor::setOffset(float offset) {
+  m_offset = offset;
 }

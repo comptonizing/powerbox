@@ -38,19 +38,22 @@
 
 class EnvironmentSensor {
   public:
-    EnvironmentSensor(unsigned char address = 0x76);
+    EnvironmentSensor(unsigned char address = 0x76, float offset = 0.0);
     float currentTemperature();
     float currentPressure();
     float currentHumidity();
     float currentDewpoint();
     void connect();
     void update(bool force = false);
+    float getOffset();
+    void setOffset(float offset);
   private:
     unsigned long m_updateInterval = 1000; // ms
     float m_lastTemperature = NAN;
     float m_lastPressure = NAN;
     float m_lastHumidity = NAN;
     float m_lastDewpoint = NAN;
+    float m_offset = 0.0;
     unsigned long m_lastUpdate = 0;
     void updateTemperature();
     void updatePressure();
