@@ -14,6 +14,7 @@ void Adj::off() {
 void Adj::on() {
   digitalWrite(m_pin, HIGH);
   m_isOn = true;
+  setVoltage(m_targetVoltage);
 }
 
 bool Adj::isOn() {
