@@ -9,6 +9,7 @@
 #include <DallasTemperature.h>
 #include <Adafruit_MCP4725.h>
 #include <PID_v1.h>
+#include <ArduinoJson.h>
 
 // Temperature probe 1
 #define TEMP1DATA 2
@@ -193,15 +194,19 @@ class DewHeater {
 class Devices {
   public:
     static Devices &i();
+    void update();
     VoltageSensor voltageSensor = VoltageSensor(EXT_VOLTAGE);
     EnvironmentSensor environmentSensor = EnvironmentSensor(BME280ADDR);
     Rail12V rail12V = Rail12V(RAIL12V);
     Adj adj = Adj(DACADDR, ADJ);
     DewHeater dewHeater1 = DewHeater(DH1PWM, TEMP1DATA);
     DewHeater dewHeater2 = DewHeater(DH2PWM, TEMP2DATA);
+    void state(char *buff, size_t buffSize);
+    void print();
   private:
     ~Devices();
     Devices();
     Devices(const Devices&);
     Devices & operator=(const Devices&);
+    void jsonAddDH(const char *prefix, DewHeater *dh, DynamicJsonDocument &json);
 };
