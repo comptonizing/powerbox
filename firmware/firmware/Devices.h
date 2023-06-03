@@ -87,15 +87,18 @@ class Rail12V {
 
 class TemperatureSensor {
   public:
-    TemperatureSensor(unsigned char pin);
+    TemperatureSensor(unsigned char pin, float offset = 0.0);
     void update(bool block = false);
     float currentTemperature();
+    void setOffset(float offset);
+    float getOffset();
   private:
     unsigned char m_pin;
     unsigned char m_address;
     OneWire bus;
     DallasTemperature sensor;
     float m_lastTemperature = 20.;
+    float m_offset = 0.0;
 };
 
 class Adj {
