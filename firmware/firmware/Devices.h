@@ -129,6 +129,8 @@ class DewHeater {
     unsigned char currentDutyCycle();
     float currentTemperature();
     float currentTargetTemperature();
+    float getOffset();
+    void setOffset(float offset);
 
     typedef enum {
       FIXED,

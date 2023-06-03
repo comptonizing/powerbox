@@ -153,3 +153,11 @@ float DewHeater::currentTemperature() {
 float DewHeater::currentTargetTemperature() {
   return m_targetTemperature;
 }
+
+float DewHeater::getOffset() {
+  return m_sensor.getOffset();
+}
+
+void DewHeater::setOffset(float offset) {
+  m_sensor.setOffset(offset);
+}
