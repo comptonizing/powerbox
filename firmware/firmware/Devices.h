@@ -146,7 +146,17 @@ class DewHeater {
     void setDewpoint(float offset);
     void setAmbient(float offset);
     void setMidpoint(float offset);
-    void setSlave(unsigned char (*callback)());
+    void setSlave(DewHeater *other);
+
+    void setFixedValue(float value);
+    void setDewpointOffset(float offset);
+    void setAmbientOffset(float offset);
+    void setMidpointOffset(float offset);
+
+    float fixedValue();
+    float dewpointOffset();
+    float ambientOffset();
+    float midpointOffset();
 
   private:
     unsigned char m_pin = -1;
@@ -155,10 +165,11 @@ class DewHeater {
     unsigned char m_currentDutyCycle = 0;
     Mode m_mode;
 
-    float m_offsetDewpoint;
-    float m_offsetAmbient;
-    float m_offsetMidpoint;
-    unsigned char (*m_slaveCallback)() = nullptr;
+    unsigned char m_fixedValue = 0;
+    float m_offsetDewpoint = 2.0;
+    float m_offsetAmbient = 5.0;
+    float m_offsetMidpoint = 5.0;
+    DewHeater *m_master = nullptr;
 
     unsigned char p2c(float percent);
     float c2p(unsigned char dc);

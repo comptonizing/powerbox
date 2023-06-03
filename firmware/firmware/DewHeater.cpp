@@ -45,14 +45,14 @@ DewHeater::Mode DewHeater::currentMode() {
 
 void DewHeater::setFixed(unsigned char dutyCycle) {
   m_mode = FIXED;
-  m_currentDutyCycle = dutyCycle;
-  setDutyCycle(dutyCycle);
+  m_fixedValue = dutyCycle;
+  m_currentDutyCycle = m_fixedValue;
+  setDutyCycle(m_fixedValue);
   update();
 }
 
 void DewHeater::setFixed(float dutyCycle) {
   setFixed(p2c(dutyCycle));
-  update();
 }
 
 void DewHeater::setDewpoint(float offset) {
@@ -76,8 +76,8 @@ void DewHeater::setMidpoint(float offset) {
   update();
 }
 
-void DewHeater::setSlave(unsigned char (*callback)()) {
-  m_slaveCallback = callback;
+void DewHeater::setSlave(DewHeater *other) {
+  m_master = other;
   m_mode = SLAVE;
   update();
 }
@@ -124,7 +124,7 @@ void DewHeater::updateMidpoint() {
 }
 
 void DewHeater::updateSlave() {
-  setDutyCycle(m_slaveCallback());
+  setDutyCycle(m_master->currentDutyCycle());
 }
 
 void DewHeater::update() {
@@ -152,6 +152,38 @@ float DewHeater::currentTemperature() {
 
 float DewHeater::currentTargetTemperature() {
   return m_targetTemperature;
+}
+
+void DewHeater::setDewpointOffset(float offset) {
+  m_offsetDewpoint = offset;
+}
+
+void DewHeater::setAmbientOffset(float offset) {
+  m_offsetAmbient = offset;
+}
+
+void DewHeater::setMidpointOffset(float offset) {
+  m_offsetMidpoint = offset;
+}
+
+void DewHeater::setFixedValue(float value) {
+  m_fixedValue = p2c(value);
+}
+
+float DewHeater::fixedValue() {
+  return c2p(m_fixedValue);
+}
+
+float DewHeater::dewpointOffset() {
+  return m_offsetDewpoint;
+}
+
+float DewHeater::ambientOffset() {
+  return m_offsetAmbient;
+}
+
+float DewHeater::midpointOffset() {
+  return m_offsetMidpoint;
 }
 
 float DewHeater::getOffset() {
