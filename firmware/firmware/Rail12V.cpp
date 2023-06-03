@@ -17,3 +17,7 @@ void Rail12V::off() {
 uint8_t Rail12V::state() {
   return m_state;
 }
+
+bool Rail12V::isOn() {
+  return m_state == HIGH ? true : false;
+}

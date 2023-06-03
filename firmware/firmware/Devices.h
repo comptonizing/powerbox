@@ -79,6 +79,7 @@ class Rail12V {
     void on();
     void off();
     uint8_t state();
+    bool isOn();
   private:
     uint8_t m_pin = -1;
     uint8_t m_state = LOW;
