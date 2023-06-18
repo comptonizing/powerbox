@@ -22,3 +22,5 @@ missing
 *.a
 *.la
 *.lo
+compile_commands.json
+.cache
