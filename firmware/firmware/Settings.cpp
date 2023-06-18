@@ -177,6 +177,22 @@ void Settings::sendMessage(const __FlashStringHelper *msg) {
   Serial.println(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
 }
 
+void Settings::sendErrorMessage(char *msg) {
+  char buff[BUFFSIZE];
+  DynamicJsonDocument json(256);
+  json["Error"] = msg;
+  serializeJson(json, buff, BUFFSIZE);
+  sendMessage(buff);
+}
+
+void Settings::sendErrorMessage(const __FlashStringHelper *msg) {
+  char buff[BUFFSIZE];
+  DynamicJsonDocument json(256);
+  json["Error"] = msg;
+  serializeJson(json, buff, BUFFSIZE);
+  sendMessage(buff);
+}
+
 void Settings::sendStatus() {
   char buff[BUFFSIZE];
   Devices::i().state(buff, BUFFSIZE);
@@ -277,7 +293,7 @@ bool Settings::runDH(const char *cmd) {
 	other = Devices::i().dewHeater1.currentMode();
       }
       if ( other == DewHeater::SLAVE ) {
-	sendMessage(F("Both dew heaters can't be slaves"));
+	sendErrorMessage(F("Both dew heaters can't be slaves"));
 	return false;
       }
     }
@@ -323,7 +339,7 @@ bool Settings::runDH(const char *cmd) {
 }
 
 void Settings::runUnknownCommand() {
-  sendMessage(F("Unknown command"));
+  sendErrorMessage(F("Unknown command"));
 }
 
 void Settings::saveAndAck() {
@@ -372,7 +388,7 @@ void Settings::loop() {
 	  if ( CommandBuffer::i().verifyChecksum() ) {
 	    runCommand(CommandBuffer::i().getCommand());
 	  } else {
-	    sendMessage(F("Checksum error"));
+	    sendErrorMessage(F("Checksum error"));
 	  }
 	  CommandBuffer::i().clear();
 	}

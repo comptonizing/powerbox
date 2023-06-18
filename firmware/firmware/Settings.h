@@ -68,5 +68,7 @@ class Settings {
     void saveAndAck();
     void sendMessage(char *msg);
     void sendMessage(const __FlashStringHelper *msg);
+    void sendErrorMessage(char *msg);
+    void sendErrorMessage(const __FlashStringHelper *msg);
     void sendStatus();
 };
