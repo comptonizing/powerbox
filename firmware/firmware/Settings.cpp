@@ -32,6 +32,15 @@ uint16_t Settings::crcCalc(uint8_t *data, uint16_t n) {
   return crc;
 }
 
+uint16_t Settings::crcCalc(const __FlashStringHelper *data, uint16_t n) {
+  const char *ptr = reinterpret_cast<const char *>(data);
+  uint16_t crc = 0;
+  for (uint16_t ii=0; ii<n; ii++) {
+    crc = _crc16_update(crc, pgm_read_byte(ptr+ii));
+  }
+  return crc;
+}
+
 bool Settings::loadFromEEPROM() {
   uint16_t magic;
   uint16_t crc;
@@ -122,7 +131,7 @@ void Settings::setDewHeaters() {
 void Settings::setDewHeater1() {
   DewHeater *dh1 = &Devices::i().dewHeater1;
   DewHeater *dh2 = &Devices::i().dewHeater2;
-  if ( DH1.slave && DH2.slave ) {
+  if ( DH1.mode == DewHeater::SLAVE && DH2.mode == DewHeater::SLAVE ) {
     // Both can't be slaves!
     dh1->setFixed((float) 0.0);
   }
@@ -132,7 +141,7 @@ void Settings::setDewHeater1() {
 void Settings::setDewHeater2() {
   DewHeater *dh1 = &Devices::i().dewHeater1;
   DewHeater *dh2 = &Devices::i().dewHeater2;
-  if ( DH1.slave && DH2.slave ) {
+  if ( DH1.mode == DewHeater::SLAVE && DH2.mode == DewHeater::SLAVE ) {
     // Both can't be slaves!
     dh2->setFixed((float) 0.0);
   }
@@ -148,4 +157,234 @@ void Settings::setDevices() {
   setAdj();
   setDewHeaters();
   setEnvironmentSensor();
+}
+
+void Settings::sendMessage(char *msg) {
+  uint16_t crc = crcCalc((uint8_t *) msg, strlen(msg));
+  char crcMsg[3];
+  crcMsg[0] = ((char *) &crc)[0];
+  crcMsg[1] = ((char *) &crc)[1];
+  crcMsg[3] = '\0';
+  Serial.println(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+}
+
+void Settings::sendMessage(const __FlashStringHelper *msg) {
+  uint16_t crc = crcCalc(msg, strlen_P(msg));
+  char crcMsg[3];
+  crcMsg[0] = ((char *) &crc)[0];
+  crcMsg[1] = ((char *) &crc)[1];
+  crcMsg[3] = '\0';
+  Serial.println(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+}
+
+void Settings::sendStatus() {
+  char buff[BUFFSIZE];
+  Devices::i().state(buff, BUFFSIZE);
+  sendMessage(buff);
+}
+
+bool Settings::runStatus(const char *cmd) {
+  if ( strcmp_P(cmd, F("status") ) ) {
+    return false;
+  }
+  sendStatus();
+  return true;
+}
+
+bool Settings::runRail(const char *cmd) {
+  bool found = false;
+  if ( strcmp_P(cmd, F("rail on")) == 0 ) {
+    m_RAIL12V_on = true;
+    found = true;
+  }
+  if ( strcmp_P(cmd, F("rail off")) == 0 ) {
+    m_RAIL12V_on = false;
+    found = true;
+  }
+
+  if ( found ) {
+    setRail12V();
+    saveAndAck();
+    return true;
+  }
+  return false;
+}
+
+bool Settings::runAdj(const char *cmd) {
+  bool found = false;
+  float voltage;
+  if ( strcmp_P(cmd, F("adj on")) == 0 ) {
+    m_ADJ_on = true;
+    found = true;
+  }
+  if ( strcmp_P(cmd, F("adj off")) == 0 ) {
+    m_ADJ_on = false;
+    found = true;
+  }
+  if ( sscanf_P(cmd, PSTR("adj %f"), &voltage) == 1 ) {
+    m_ADJ_voltage = voltage;
+    found = true;
+  }
+
+  if ( found ) {
+    setAdj();
+    saveAndAck();
+    return true;
+  }
+  return false;
+}
+
+bool Settings::runEnv(const char *cmd) {
+  bool found = false;
+  float offset;
+  if ( sscanf_P(cmd, PSTR("env offset %f"), &offset) == 1 ) {
+    m_environmentSensorOffset = offset;
+    found = true;
+  }
+
+  if ( found ) {
+    setEnvironmentSensor();
+    saveAndAck();
+    return true;
+  }
+  return false;
+}
+
+bool Settings::runDH(const char *cmd) {
+  unsigned char dh;
+  DewHeaterSettings *settings;
+  bool found = false;
+  float tmpFloat;
+  unsigned char tmpChar;
+  if ( sscanf_P(cmd, PSTR("DH%d")) != 1 ) {
+    return false;
+  }
+  if ( dh == 1 ) {
+    settings = &DH1;
+  } if ( dh == 2 ) {
+    settings = &DH2;
+  } else {
+    return false;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d mode %d"), &tmpChar) == 1 ) {
+    if ( tmpChar == DewHeater::SLAVE ) {
+      DewHeater::Mode other;
+      if ( dh == 1 ) {
+	other = Devices::i().dewHeater2.currentMode();
+      }
+      if ( dh == 2 ) {
+	other = Devices::i().dewHeater1.currentMode();
+      }
+      if ( other == DewHeater::SLAVE ) {
+	sendMessage(F("Both dew heaters can't be slaves"));
+	return false;
+      }
+    }
+    settings->mode = DewHeater::Mode(tmpChar);
+    found = true;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d offset %f"), &tmpFloat) == 1 ) {
+    settings->offset = tmpFloat;
+    found = true;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d fixed %f"), &tmpFloat) == 1 ) {
+    settings->fixed = tmpFloat;
+    found = true;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d oD %f"), &tmpFloat) == 1 ) {
+    settings->offsetDewpoint = tmpFloat;
+    found = true;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d oA %f"), &tmpFloat) == 1 ) {
+    settings->offsetAmbient = tmpFloat;
+    found = true;
+  }
+
+  if ( sscanf(cmd, PSTR("DH%*d oM %f"), &tmpFloat) == 1 ) {
+    settings->offsetMidpoint = tmpFloat;
+    found = true;
+  }
+
+  if ( found ) {
+    if ( dh == 1 ) {
+      setDewHeater1();
+    }
+    if ( dh == 2 ) {
+      setDewHeater2();
+    }
+    saveAndAck();
+  }
+  return false;
+}
+
+void Settings::runUnknownCommand() {
+  sendMessage(F("Unknown command"));
+}
+
+void Settings::saveAndAck() {
+  saveToEEPROM();
+  sendStatus();
+}
+
+bool Settings::runCommand(const char *cmd) {
+  if ( runStatus(cmd) ) {
+    return true;
+  }
+  if ( runRail(cmd) ) {
+      return true;
+  }
+  if ( runAdj(cmd) ) {
+    return true;
+  }
+  runUnknownCommand();
+  return false;
+}
+
+void Settings::setup() {
+  Serial.begin(9600);
+  Serial.setTimeout(1000);
+}
+
+void Settings::loop() {
+  static bool inCommand = false;
+  Devices::i().update();
+  while ( Serial.available() ) {
+    char c = Serial.read();
+    switch (c) {
+      case MSG_PREFIX:
+	inCommand = true;
+	CommandBuffer::i().clear();
+	CommandBuffer::i().add(c);
+	break;
+      case MSG_POSTFIX:
+	if ( inCommand ) {
+	  inCommand = false;
+	  if ( ! CommandBuffer::i().add(c) ) {
+	    // Overflow
+	    CommandBuffer::i().clear();
+	    break;
+	  }
+	  if ( CommandBuffer::i().verifyChecksum() ) {
+	    runCommand(CommandBuffer::i().getCommand());
+	  } else {
+	    sendMessage(F("Checksum error"));
+	  }
+	  CommandBuffer::i().clear();
+	}
+	break;
+      default:
+	if ( inCommand ) {
+	  if ( ! CommandBuffer::i().add(c) ) {
+	    // Overflow
+	    CommandBuffer::i().clear();
+	    inCommand = false;
+	  }
+	}
+    }
+  }
 }

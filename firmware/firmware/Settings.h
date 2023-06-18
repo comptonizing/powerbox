@@ -1,11 +1,18 @@
 #pragma once
 
+#define MSG_PREFIX '#'
+#define MSG_POSTFIX '$'
+
+#define BUFFSIZE 256
+
+#include <string.h>
 #include <HardwareSerial.h>
 #include <string.h>
 #include <EEPROM.h>
 #include <util/crc16.h>
 
 #include "Devices.h"
+#include "CommandBuffer.h"
 
 typedef struct {
   DewHeater::Mode mode = DewHeater::DEWPOINT;
@@ -14,7 +21,6 @@ typedef struct {
   float offsetDewpoint = 2.0;
   float offsetAmbient = 5.0;
   float offsetMidpoint = 5.0;
-  bool slave = false;
 } DewHeaterSettings;
 
 class Settings {
@@ -27,6 +33,9 @@ class Settings {
     void setDewHeater1();
     void setDewHeater2();
     void setEnvironmentSensor();
+    bool runCommand(const char *cmd);
+    void setup();
+    void loop();
   private:
     Settings();
     ~Settings();
@@ -37,6 +46,7 @@ class Settings {
     bool loadFromEEPROM();
     void saveToEEPROM();
     uint16_t crcCalc(uint8_t *data, uint16_t n);
+    uint16_t crcCalc(const __FlashStringHelper *data, uint16_t n);
 
     bool m_RAIL12V_on = false;
 
@@ -48,4 +58,15 @@ class Settings {
     DewHeaterSettings DH1;
     DewHeaterSettings DH2;
     void setDewHeater(DewHeater *heater, DewHeaterSettings *setting, DewHeater *master = nullptr);
+
+    bool runStatus(const char *cmd);
+    bool runRail(const char *cmd);
+    bool runAdj(const char *cmd);
+    bool runEnv(const char *cmd);
+    bool runDH(const char *cmd);
+    void runUnknownCommand();
+    void saveAndAck();
+    void sendMessage(char *msg);
+    void sendMessage(const __FlashStringHelper *msg);
+    void sendStatus();
 };
