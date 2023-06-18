@@ -362,7 +362,7 @@ bool Settings::runCommand(const char *cmd) {
 }
 
 void Settings::setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.setTimeout(1000);
 }
 
