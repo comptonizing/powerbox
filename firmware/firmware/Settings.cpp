@@ -165,7 +165,7 @@ void Settings::sendMessage(char *msg) {
   crcMsg[0] = ((char *) &crc)[0];
   crcMsg[1] = ((char *) &crc)[1];
   crcMsg[3] = '\0';
-  Serial.println(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+  Serial.print(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
 }
 
 void Settings::sendMessage(const __FlashStringHelper *msg) {
@@ -174,7 +174,7 @@ void Settings::sendMessage(const __FlashStringHelper *msg) {
   crcMsg[0] = ((char *) &crc)[0];
   crcMsg[1] = ((char *) &crc)[1];
   crcMsg[3] = '\0';
-  Serial.println(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+  Serial.print(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
 }
 
 void Settings::sendErrorMessage(char *msg) {
