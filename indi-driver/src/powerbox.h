@@ -30,19 +30,30 @@ class Powerbox : public INDI::DefaultDevice {
     virtual bool initProperties() override;
     virtual bool loadConfig(bool silent, const char *property) override;
     virtual bool updateProperties() override;
+    virtual bool ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) override;
     virtual void TimerHit() override;
   private:
     Connection::Serial *serialConnection{nullptr};
+    // Voltage
     INumber VoltageN[1];
     INumberVectorProperty VoltageNP;
+    // External environment sensor
     INumber EnvN[4];
     INumberVectorProperty EnvNP;
+    // 4x12V Rail
+    ISwitch RailS[2];
+    ISwitchVectorProperty RailSP;
 
     enum {
       TEMPERATURE,
       HUMIDITY,
       PRESSURE,
       DEWPOINT
+    };
+
+    enum {
+      ON,
+      OFF
     };
 
     bool sendCommand(const char *cmd, char *rsp);
@@ -53,7 +64,9 @@ class Powerbox : public INDI::DefaultDevice {
     void cmdCrc(const char *cmd, char *out);
     bool checkCrc(const char *rsp);
     const json& getJSON();
+    bool updateFromResponse(const char *rsp);
     bool update();
     void setVoltage(const json& data);
     void setEnvironment(const json& data);
+    void setRail(const json& data);
 };

@@ -124,14 +124,19 @@ bool Powerbox::initProperties() {
 
   IUFillNumber(&VoltageN[0], "VOLTAGE", "Voltage [V]", "%0.2f", 0.0, 99.0, 0.01, 0.0);
   IUFillNumberVector(&VoltageNP, VoltageN, 1, getDeviceName(), "VOLTAGE", "Power",
-      MAIN_CONTROL_TAB, IP_RO, 0, IPS_IDLE);
+      MAIN_CONTROL_TAB, IP_RO, TIMEOUT, IPS_IDLE);
 
   IUFillNumber(&EnvN[TEMPERATURE], "TEMPERATURE", "Temperature [°C]", "%.1f", -100.0, 100.0, 0.1, 0.0);
   IUFillNumber(&EnvN[HUMIDITY], "HUMIDITY", "Rel. Humidity [%]", "%.1f", 0.0, 100.0, 0.1, 50.0);
   IUFillNumber(&EnvN[PRESSURE], "PRESSURE", "Pressure [mbar]", "%.1f", 0.0, 2000.0, 0.1, 1013.0);
   IUFillNumber(&EnvN[DEWPOINT], "DEWPOINT", "Dewpoint [°C]", "%.1f", -100.0, 100.0, 0.1, 0.0);
   IUFillNumberVector(&EnvNP, EnvN, 4, getDeviceName(), "ENVIRONMENT", "Environment",
-      MAIN_CONTROL_TAB, IP_RO, 0, IPS_IDLE);
+      MAIN_CONTROL_TAB, IP_RO, TIMEOUT, IPS_IDLE);
+
+  IUFillSwitch(&RailS[ON], "RAIL_ON", "On", ISS_OFF);
+  IUFillSwitch(&RailS[OFF], "RAIL_OFF", "Off", ISS_ON);
+  IUFillSwitchVector(&RailSP, RailS, 2, getDeviceName(), "RAIL", "12V Rail",
+      MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, TIMEOUT, IPS_IDLE);
   return true;
 }
 
@@ -173,10 +178,12 @@ bool Powerbox::updateProperties() {
   if ( isConnected() ) {
     defineProperty(&VoltageNP);
     defineProperty(&EnvNP);
+    defineProperty(&RailSP);
     update();
   } else {
     deleteProperty(VoltageNP.name);
     deleteProperty(EnvNP.name);
+    deleteProperty(RailSP.name);
   }
   return true;
 }
@@ -212,12 +219,27 @@ void Powerbox::setEnvironment(const json& data) {
   IDSetNumber(&EnvNP, nullptr);
 }
 
-bool Powerbox::update() {
-  char cmd[] = "status";
-  char rsp[RSPBUFF];
-  if ( ! sendCommand(cmd, rsp) ) {
-    return false;
+void Powerbox::setRail(const json& data) {
+  RailSP.s = IPS_BUSY;
+  IDSetSwitch(&RailSP, nullptr);
+  try {
+    bool isOn = data["R"].template get<bool>();
+    if ( isOn ) {
+      RailS[ON].s = ISS_ON;
+      RailS[OFF].s = ISS_OFF;
+    } else {
+      RailS[ON].s = ISS_OFF;
+      RailS[OFF].s = ISS_ON;
+    }
+    RailSP.s = IPS_OK;
+  } catch (...) {
+    RailSP.s = IPS_ALERT;
+    IDSetSwitch(&RailSP, nullptr);
   }
+  IDSetSwitch(&RailSP, nullptr);
+}
+
+bool Powerbox::updateFromResponse(const char *rsp) {
   json data;
   try {
     data = json::parse(rsp);
@@ -232,6 +254,7 @@ bool Powerbox::update() {
   try {
     setVoltage(data);
     setEnvironment(data);
+    setRail(data);
   } catch (...) {
     LOG_ERROR("Could not decode values from device");
     return false;
@@ -239,9 +262,60 @@ bool Powerbox::update() {
   return true;
 }
 
+bool Powerbox::update() {
+  char cmd[] = "status";
+  char rsp[RSPBUFF];
+  if ( ! sendCommand(cmd, rsp) ) {
+    return false;
+  }
+  return updateFromResponse(rsp);
+}
+
 void Powerbox::TimerHit() {
   if ( isConnected() ) {
     update();
   }
   SetTimer(getCurrentPollingPeriod());
+}
+
+bool Powerbox::ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) {
+  if (dev != nullptr && strcmp(dev, getDeviceName()) == 0) {
+    if ( strcmp(name, RailSP.name) == 0 ) {
+      bool commandStatus;
+      char rsp[RSPBUFF];
+      const char *actionName = IUFindOnSwitchName(states, names, n);
+      int currentStatus = IUFindOnSwitchIndex(&RailSP);
+      if ( strcmp(actionName, RailS[currentStatus].name) == 0 ) {
+	RailSP.s = IPS_OK;
+	IDSetSwitch(&RailSP, nullptr);
+	return true;
+      }
+      RailSP.s = IPS_BUSY;
+      IDSetSwitch(&RailSP, nullptr);
+      if ( strcmp(actionName, RailS[ON].name) == 0 ) {
+	commandStatus = sendCommand("rail on", rsp);
+      } else if ( strcmp(actionName, RailS[OFF].name) == 0 ) {
+	commandStatus = sendCommand("rail off", rsp);
+      } else {
+	RailSP.s = IPS_ALERT;
+        IDSetSwitch(&RailSP, nullptr);
+	LOGF_ERROR("Unknown requested switch state: %s", actionName);
+	return false;
+      }
+      if ( ! commandStatus ) {
+	RailSP.s = IPS_ALERT;
+        IDSetSwitch(&RailSP, nullptr);
+	return false;
+      }
+      if ( ! updateFromResponse(rsp) ) {
+        RailSP.s = IPS_ALERT;
+        IDSetSwitch(&RailSP, nullptr);
+	return false;
+      }
+      RailSP.s = IPS_OK;
+      IDSetSwitch(&RailSP, nullptr);
+      return true;
+    }
+  }
+  return INDI::DefaultDevice::ISNewSwitch(dev, name, states, names, n);
 }
