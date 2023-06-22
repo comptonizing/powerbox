@@ -70,10 +70,10 @@ void Settings::saveToEEPROM() {
 }
 
 Settings::Settings() {
-  if ( loadFromEEPROM() ) {
-    return;
+  if ( ! loadFromEEPROM() ) {
+    saveToEEPROM();
   }
-  saveToEEPROM();
+  setDevices();
 }
 
 Settings::~Settings() {
