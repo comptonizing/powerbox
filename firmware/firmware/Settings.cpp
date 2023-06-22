@@ -357,6 +357,9 @@ bool Settings::runCommand(const char *cmd) {
   if ( runAdj(cmd) ) {
     return true;
   }
+  if ( runEnv(cmd) ) {
+    return true;
+  }
   runUnknownCommand();
   return false;
 }
