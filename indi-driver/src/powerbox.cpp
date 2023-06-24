@@ -21,21 +21,27 @@ void Powerbox::cmdCrc(const char *cmd, char *out) {
   int len = strlen(cmd);
   memcpy(out+1, cmd, len);
   out[0] = '#';
-  out[len+1] = ((char *) &crc)[0];
-  out[len+2] = ((char *) &crc)[1];
-  out[len+3] = '$';
-  out[len+4] = '\0';
+  out[len+1] = '\0';
+  out[len+2] = ((char *) &crc)[0];
+  out[len+3] = ((char *) &crc)[1];
+  out[len+4] = '$';
+  out[len+5] = '\0';
 }
 
 bool Powerbox::checkCrc(const char *rsp) {
   uint16_t crcGotten;
-  size_t len = strlen(rsp) - 2;
-  ((char *) &crcGotten)[0] = rsp[len+0];
-  ((char *) &crcGotten)[1] = rsp[len+1];
+  size_t len = strlen(rsp);
+  ((char *) &crcGotten)[0] = rsp[len+1];
+  ((char *) &crcGotten)[1] = rsp[len+2];
   uint16_t crcCalculated = crcCalc((const void *) rsp, len);
   if ( crcGotten == crcCalculated ) {
     return true;
   } else {
+    LOG_ERROR("Checksum error");
+    LOGF_ERROR("Message: %s", rsp);
+    LOGF_ERROR("Checksum: %d (0x%02x 0x%02x), expected %d (0x%02x 0x%02x)",
+	crcCalculated, ((unsigned char *) &crcCalculated)[0], ((unsigned char *) &crcCalculated)[1],
+	crcGotten, ((unsigned char *) &crcGotten)[0], ((unsigned char *) &crcGotten)[1]);
     return false;
   }
 }
@@ -51,7 +57,7 @@ bool Powerbox::sendCommand(const char *cmd, char *rsp) {
   cmdCrc(cmd, buff);
 
   tcflush(PortFD, TCIOFLUSH);
-  if ( (rc = tty_write(PortFD, buff, strlen(buff), &nbytes_written)) != TTY_OK ) {
+  if ( (rc = tty_write(PortFD, buff, strlen(buff)+4, &nbytes_written)) != TTY_OK ) {
     tty_error_msg(rc, err, ERRBUFF);
     LOGF_ERROR("Error writing command %s: %s", cmd, err);
     return false;
@@ -74,16 +80,11 @@ bool Powerbox::sendCommand(const char *cmd, char *rsp) {
     LOGF_ERROR("Error reading response: %s", err);
     return false;
   }
-  rspBuff[nbytes_read+1] = '\0';
 
-  LOGF_DEBUG("RSP: %s", rspBuff);
-  memcpy(rsp, rspBuff+1, strlen(rspBuff)-2);
-  rsp[strlen(rspBuff)-3] = '\0';
+  memcpy(rsp, rspBuff+1, strlen(rspBuff)+2);
   if ( ! checkCrc(rsp) ) {
-    LOG_ERROR("Checksum error");
     return false;
   }
-  rsp[strlen(rsp)-2] = '\0';
   return true;
 }
 
@@ -133,10 +134,23 @@ bool Powerbox::initProperties() {
   IUFillNumberVector(&EnvNP, EnvN, 4, getDeviceName(), "ENVIRONMENT", "Environment",
       MAIN_CONTROL_TAB, IP_RO, TIMEOUT, IPS_IDLE);
 
+  IUFillNumber(&EnvOffsetN[0], "ENVOFFSET", "Temperature offset [°C]", "%.1f", -10.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&EnvOffsetNP, EnvOffsetN, 1, getDeviceName(), "ENVOFFSET",
+      "Environment", MAIN_CONTROL_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
   IUFillSwitch(&RailS[ON], "RAIL_ON", "On", ISS_OFF);
   IUFillSwitch(&RailS[OFF], "RAIL_OFF", "Off", ISS_ON);
   IUFillSwitchVector(&RailSP, RailS, 2, getDeviceName(), "RAIL", "12V Rail",
       MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, TIMEOUT, IPS_IDLE);
+
+  IUFillSwitch(&AdjS[ON], "RAIL_ON", "On", ISS_OFF);
+  IUFillSwitch(&AdjS[OFF], "RAIL_OFF", "Off", ISS_ON);
+  IUFillSwitchVector(&AdjSP, AdjS, 2, getDeviceName(), "ADJSTATE", "Adjustable state",
+      MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&AdjN[0], "ADJV", "V", "%.1f", 5.0, 12.0, 0.1, 0.0);
+  IUFillNumberVector(&AdjNP, AdjN, 1, getDeviceName(), "ADJV", "Adjustable voltage",
+      MAIN_CONTROL_TAB, IP_RW, TIMEOUT, IPS_IDLE);
   return true;
 }
 
@@ -178,50 +192,62 @@ bool Powerbox::updateProperties() {
   if ( isConnected() ) {
     defineProperty(&VoltageNP);
     defineProperty(&EnvNP);
+    defineProperty(&EnvOffsetNP);
     defineProperty(&RailSP);
+    defineProperty(&AdjSP);
+    defineProperty(&AdjNP);
     update();
   } else {
     deleteProperty(VoltageNP.name);
     deleteProperty(EnvNP.name);
+    deleteProperty(EnvOffsetNP.name);
     deleteProperty(RailSP.name);
+    deleteProperty(AdjSP.name);
+    deleteProperty(AdjNP.name);
   }
   return true;
 }
 
 void Powerbox::setVoltage(const json& data) {
-  VoltageNP.s = IPS_BUSY;
-  IDSetNumber(&VoltageNP, nullptr);
   try {
     VoltageN[0].value = data["V"].template get<double>();
     VoltageNP.s = IPS_OK;
+    IDSetNumber(&VoltageNP, nullptr);
   } catch (...) {
     VoltageNP.s = IPS_ALERT;
     IDSetNumber(&VoltageNP, nullptr);
     throw;
   }
-  IDSetNumber(&VoltageNP, nullptr);
 }
 
 void Powerbox::setEnvironment(const json& data) {
-  EnvNP.s = IPS_BUSY;
-  IDSetNumber(&EnvNP, nullptr);
   try {
     EnvN[TEMPERATURE].value = data["E"]["T"].template get<double>();
     EnvN[HUMIDITY].value = data["E"]["H"].template get<double>();
     EnvN[PRESSURE].value = data["E"]["P"].template get<double>();
     EnvN[DEWPOINT].value = data["E"]["D"].template get<double>();
     EnvNP.s = IPS_OK;
+    IDSetNumber(&EnvNP, nullptr);
   } catch (...) {
     EnvNP.s = IPS_ALERT;
     IDSetNumber(&EnvNP, nullptr);
     throw;
   }
-  IDSetNumber(&EnvNP, nullptr);
+}
+
+void Powerbox::setEnvironmentOffset(const json& data) {
+  try {
+    EnvOffsetN[0].value = data["E"]["dT"].template get<double>();
+    EnvOffsetNP.s = IPS_OK;
+    IDSetNumber(&EnvOffsetNP, nullptr);
+  } catch (...) {
+    EnvOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&EnvOffsetNP, nullptr);
+    throw;
+  }
 }
 
 void Powerbox::setRail(const json& data) {
-  RailSP.s = IPS_BUSY;
-  IDSetSwitch(&RailSP, nullptr);
   try {
     bool isOn = data["R"].template get<bool>();
     if ( isOn ) {
@@ -232,11 +258,42 @@ void Powerbox::setRail(const json& data) {
       RailS[OFF].s = ISS_ON;
     }
     RailSP.s = IPS_OK;
+    IDSetSwitch(&RailSP, nullptr);
   } catch (...) {
     RailSP.s = IPS_ALERT;
     IDSetSwitch(&RailSP, nullptr);
   }
-  IDSetSwitch(&RailSP, nullptr);
+}
+
+void Powerbox::setAdjState(const json& data) {
+  try {
+    bool isOn = data["A"]["ON"].template get<bool>();
+    if ( isOn ) {
+      AdjS[ON].s = ISS_ON;
+      AdjS[OFF].s = ISS_OFF;
+    } else {
+      AdjS[ON].s = ISS_OFF;
+      AdjS[OFF].s = ISS_ON;
+    }
+    AdjSP.s = IPS_OK;
+    IDSetSwitch(&AdjSP, nullptr);
+  } catch (...) {
+    AdjSP.s = IPS_ALERT;
+    IDSetSwitch(&AdjSP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setAdjVoltage(const json& data) {
+  try {
+    AdjN[0].value = data["A"]["V"].template get<double>();
+    AdjNP.s = IPS_OK;
+    IDSetNumber(&AdjNP, nullptr);
+  } catch (...) {
+    AdjNP.s = IPS_ALERT;
+    IDSetNumber(&AdjNP, nullptr);
+    throw;
+  }
 }
 
 bool Powerbox::updateFromResponse(const char *rsp) {
@@ -254,7 +311,10 @@ bool Powerbox::updateFromResponse(const char *rsp) {
   try {
     setVoltage(data);
     setEnvironment(data);
+    setEnvironmentOffset(data);
     setRail(data);
+    setAdjState(data);
+    setAdjVoltage(data);
   } catch (...) {
     LOG_ERROR("Could not decode values from device");
     return false;
@@ -278,44 +338,114 @@ void Powerbox::TimerHit() {
   SetTimer(getCurrentPollingPeriod());
 }
 
+bool Powerbox::processRailSP(ISState * states, char * names[], int n) {
+  bool commandStatus;
+  char rsp[RSPBUFF];
+  const char *actionName = IUFindOnSwitchName(states, names, n);
+  int currentStatus = IUFindOnSwitchIndex(&RailSP);
+  if ( strcmp(actionName, RailS[currentStatus].name) == 0 ) {
+    RailSP.s = IPS_OK;
+    IDSetSwitch(&RailSP, nullptr);
+    return true;
+  }
+  if ( strcmp(actionName, RailS[ON].name) == 0 ) {
+    commandStatus = sendCommand("rail on", rsp);
+  } else if ( strcmp(actionName, RailS[OFF].name) == 0 ) {
+    commandStatus = sendCommand("rail off", rsp);
+  } else {
+    RailSP.s = IPS_ALERT;
+    IDSetSwitch(&RailSP, nullptr);
+    LOGF_ERROR("Unknown requested switch state: %s", actionName);
+    return false;
+  }
+  if ( ! commandStatus || ! updateFromResponse(rsp) ) {
+    RailSP.s = IPS_ALERT;
+    IDSetSwitch(&RailSP, nullptr);
+    return false;
+  }
+  RailSP.s = IPS_OK;
+  IDSetSwitch(&RailSP, nullptr);
+  return true;
+}
+
+bool Powerbox::processAdjSP(ISState * states, char * names[], int n) {
+  bool commandStatus;
+  char rsp[RSPBUFF];
+  const char *actionName = IUFindOnSwitchName(states, names, n);
+  int currentStatus = IUFindOnSwitchIndex(&AdjSP);
+  if ( strcmp(actionName, AdjS[currentStatus].name) == 0 ) {
+    AdjSP.s = IPS_OK;
+    IDSetSwitch(&AdjSP, nullptr);
+    return true;
+  }
+  if ( strcmp(actionName, AdjS[ON].name) == 0 ) {
+    commandStatus = sendCommand("adj on", rsp);
+  } else if ( strcmp(actionName, AdjS[OFF].name) == 0 ) {
+    commandStatus = sendCommand("adj off", rsp);
+  } else {
+    AdjSP.s = IPS_ALERT;
+    IDSetSwitch(&AdjSP, nullptr);
+    LOGF_ERROR("Unknown requested switch state: %s", actionName);
+    return false;
+  }
+  if ( ! commandStatus || ! updateFromResponse(rsp) ) {
+    AdjSP.s = IPS_ALERT;
+    IDSetSwitch(&AdjSP, nullptr);
+    return false;
+  }
+  AdjSP.s = IPS_OK;
+  IDSetSwitch(&AdjSP, nullptr);
+  return true;
+}
+
 bool Powerbox::ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) {
   if (dev != nullptr && strcmp(dev, getDeviceName()) == 0) {
     if ( strcmp(name, RailSP.name) == 0 ) {
-      bool commandStatus;
-      char rsp[RSPBUFF];
-      const char *actionName = IUFindOnSwitchName(states, names, n);
-      int currentStatus = IUFindOnSwitchIndex(&RailSP);
-      if ( strcmp(actionName, RailS[currentStatus].name) == 0 ) {
-	RailSP.s = IPS_OK;
-	IDSetSwitch(&RailSP, nullptr);
-	return true;
-      }
-      RailSP.s = IPS_BUSY;
-      IDSetSwitch(&RailSP, nullptr);
-      if ( strcmp(actionName, RailS[ON].name) == 0 ) {
-	commandStatus = sendCommand("rail on", rsp);
-      } else if ( strcmp(actionName, RailS[OFF].name) == 0 ) {
-	commandStatus = sendCommand("rail off", rsp);
-      } else {
-	RailSP.s = IPS_ALERT;
-        IDSetSwitch(&RailSP, nullptr);
-	LOGF_ERROR("Unknown requested switch state: %s", actionName);
-	return false;
-      }
-      if ( ! commandStatus ) {
-	RailSP.s = IPS_ALERT;
-        IDSetSwitch(&RailSP, nullptr);
-	return false;
-      }
-      if ( ! updateFromResponse(rsp) ) {
-        RailSP.s = IPS_ALERT;
-        IDSetSwitch(&RailSP, nullptr);
-	return false;
-      }
-      RailSP.s = IPS_OK;
-      IDSetSwitch(&RailSP, nullptr);
-      return true;
+      return processRailSP(states, names, n);
+    }
+    if ( strcmp(name, AdjSP.name) == 0 ) {
+      return processAdjSP(states, names, n);
     }
   }
   return INDI::DefaultDevice::ISNewSwitch(dev, name, states, names, n);
+}
+
+bool Powerbox::processEnvOffsetNP(double *values) {
+  char cmd[CMDBUFF];
+  char rsp[RSPBUFF];
+  snprintf(cmd, CMDBUFF, "env offset %d", static_cast<int>(values[0] * 100));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    EnvOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&EnvOffsetNP, nullptr);
+    return false;
+  }
+  EnvOffsetNP.s = IPS_OK;
+  IDSetNumber(&EnvOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processAdjNP(double *values) {
+  char cmd[CMDBUFF];
+  char rsp[RSPBUFF];
+  snprintf(cmd, CMDBUFF, "adj %d", static_cast<int>(values[0] * 100));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    AdjNP.s = IPS_ALERT;
+    IDSetNumber(&AdjNP, nullptr);
+    return false;
+  }
+  AdjNP.s = IPS_OK;
+  IDSetNumber(&AdjNP, nullptr);
+  return true;
+}
+
+bool Powerbox::ISNewNumber(const char *dev, const char *name, double *values, char *names[], int n) {
+  if (dev != nullptr && strcmp(dev, getDeviceName()) == 0) {
+    if ( strcmp(name, EnvOffsetNP.name) == 0 ) {
+      return processEnvOffsetNP(values);
+    }
+    if ( strcmp(name, AdjNP.name) == 0 ) {
+      return processAdjNP(values);
+    }
+  }
+  return INDI::DefaultDevice::ISNewNumber(dev, name, values, names, n);
 }

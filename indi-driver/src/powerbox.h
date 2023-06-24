@@ -13,7 +13,7 @@
 #define ERRBUFF 256
 #define RSPBUFF 1024
 
-#define TIMEOUT 2
+#define TIMEOUT 5
 
 using json = nlohmann::json;
 
@@ -31,6 +31,7 @@ class Powerbox : public INDI::DefaultDevice {
     virtual bool loadConfig(bool silent, const char *property) override;
     virtual bool updateProperties() override;
     virtual bool ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) override;
+    virtual bool ISNewNumber(const char *dev, const char *name, double *values, char *names[], int n) override;
     virtual void TimerHit() override;
   private:
     Connection::Serial *serialConnection{nullptr};
@@ -40,9 +41,16 @@ class Powerbox : public INDI::DefaultDevice {
     // External environment sensor
     INumber EnvN[4];
     INumberVectorProperty EnvNP;
+    INumber EnvOffsetN[1];
+    INumberVectorProperty EnvOffsetNP;
     // 4x12V Rail
     ISwitch RailS[2];
     ISwitchVectorProperty RailSP;
+    // Adj
+    ISwitch AdjS[2];
+    ISwitchVectorProperty AdjSP;
+    INumber AdjN[1];
+    INumberVectorProperty AdjNP;
 
     enum {
       TEMPERATURE,
@@ -68,5 +76,12 @@ class Powerbox : public INDI::DefaultDevice {
     bool update();
     void setVoltage(const json& data);
     void setEnvironment(const json& data);
+    void setEnvironmentOffset(const json& data);
     void setRail(const json& data);
+    void setAdjState(const json& data);
+    void setAdjVoltage(const json& data);
+    bool processRailSP(ISState * states, char * names[], int n);
+    bool processAdjSP(ISState * states, char * names[], int n);
+    bool processEnvOffsetNP(double *values);
+    bool processAdjNP(double *values);
 };
