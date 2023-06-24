@@ -7,6 +7,19 @@ static uint16_t __magic = 0b1110110101010010;
 
 #define OFFSET_DATA (OFFSET_CRC + sizeof(uint16_t))
 
+static inline uint16_t crc16_update(uint16_t crc, uint8_t a) {
+  // Code from crc16.h from the Arduino core tools
+  crc ^= a;
+  for (int ii=0; ii<8; ii++) {
+    if ( crc & 1 ) {
+      crc = (crc >> 1) ^ 0xA001;
+    } else {
+      crc = (crc >> 1);
+    }
+  }
+  return crc;
+}
+
 Settings &Settings::i() {
   static Settings theInstance;
   return theInstance;
@@ -27,7 +40,16 @@ void Settings::writeEEPROM(uint16_t address, uint8_t *buff, uint16_t n) {
 uint16_t Settings::crcCalc(uint8_t *data, uint16_t n) {
   uint16_t crc = 0;
   for (uint16_t ii=0; ii<n; ii++) {
-    crc = _crc16_update(crc, data[ii]);
+    crc = crc16_update(crc, data[ii]);
+  }
+  return crc;
+}
+
+uint16_t Settings::crcCalc(const char *str) {
+  uint16_t crc = 0;
+  while ( *str != '\0' ) {
+    crc = crc16_update(crc, *str);
+    str++;
   }
   return crc;
 }
@@ -36,7 +58,7 @@ uint16_t Settings::crcCalc(const __FlashStringHelper *data, uint16_t n) {
   const char *ptr = reinterpret_cast<const char *>(data);
   uint16_t crc = 0;
   for (uint16_t ii=0; ii<n; ii++) {
-    crc = _crc16_update(crc, pgm_read_byte(ptr+ii));
+    crc = crc16_update(crc, pgm_read_byte(ptr+ii));
   }
   return crc;
 }
@@ -160,12 +182,16 @@ void Settings::setDevices() {
 }
 
 void Settings::sendMessage(char *msg) {
-  uint16_t crc = crcCalc((uint8_t *) msg, strlen(msg));
+  uint16_t crc = crcCalc(msg);
   char crcMsg[3];
   crcMsg[0] = ((char *) &crc)[0];
   crcMsg[1] = ((char *) &crc)[1];
-  crcMsg[3] = '\0';
-  Serial.print(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+  crcMsg[2] = '\0';
+  Serial.print(MSG_PREFIX);
+  Serial.print(msg);
+  Serial.print('\0');
+  Serial.print(crcMsg);
+  Serial.print(MSG_POSTFIX);
 }
 
 void Settings::sendMessage(const __FlashStringHelper *msg) {
@@ -173,8 +199,12 @@ void Settings::sendMessage(const __FlashStringHelper *msg) {
   char crcMsg[3];
   crcMsg[0] = ((char *) &crc)[0];
   crcMsg[1] = ((char *) &crc)[1];
-  crcMsg[3] = '\0';
-  Serial.print(MSG_PREFIX + String(msg) + String(crcMsg) + MSG_POSTFIX);
+  crcMsg[2] = '\0';
+  Serial.print(MSG_PREFIX);
+  Serial.print(msg);
+  Serial.print('\0');
+  Serial.print(crcMsg);
+  Serial.print(MSG_POSTFIX);
 }
 
 void Settings::sendErrorMessage(char *msg) {

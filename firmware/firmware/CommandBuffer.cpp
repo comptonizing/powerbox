@@ -32,9 +32,9 @@ bool CommandBuffer::add(char c) {
 
 bool CommandBuffer::verifyChecksum() {
   char *start = m_buff + 1;
-  int len = pos - m_buff - 4;
+  int len = pos - m_buff - 5;
   uint16_t crcRef;
-  memcpy(&crcRef, start + len, 2);
+  memcpy(&crcRef, start + len + 1, 2);
   uint16_t crc = 0;
   for (int ii=0; ii<len; ii++) {
     crc = _crc16_update(crc, start[ii]);
@@ -42,12 +42,6 @@ bool CommandBuffer::verifyChecksum() {
   return crc == crcRef;
 }
 
-void CommandBuffer::cut() {
-  pos -= 3;
-  *pos = '\0';
-}
-
 const char *CommandBuffer::getCommand() {
-  cut();
   return m_buff + 1;
 }

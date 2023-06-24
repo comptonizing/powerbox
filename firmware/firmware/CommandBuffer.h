@@ -1,6 +1,6 @@
 #pragma once
 
-#define CMDBUFF_SIZE 64
+#define CMDBUFF_SIZE 32
 
 #include <Arduino.h>
 #include <util/crc16.h>
@@ -13,7 +13,6 @@ class CommandBuffer {
     const char *getCommand();
     bool add(char c);
     bool verifyChecksum();
-    void cut();
   private:
     ~CommandBuffer();
     CommandBuffer();
