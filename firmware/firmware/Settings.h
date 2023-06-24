@@ -47,6 +47,7 @@ class Settings {
     void saveToEEPROM();
     uint16_t crcCalc(uint8_t *data, uint16_t n);
     uint16_t crcCalc(const __FlashStringHelper *data, uint16_t n);
+    uint16_t crcCalc(const char *str);
 
     bool m_RAIL12V_on = false;
 
