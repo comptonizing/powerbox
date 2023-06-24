@@ -208,18 +208,18 @@ void Settings::sendMessage(const __FlashStringHelper *msg) {
 }
 
 void Settings::sendErrorMessage(char *msg) {
-  char buff[BUFFSIZE];
-  DynamicJsonDocument json(256);
-  json["Error"] = msg;
-  serializeJson(json, buff, BUFFSIZE);
+  char buff[128];
+  DynamicJsonDocument json(128);
+  json[F("Error")] = msg;
+  serializeJson(json, buff, 128);
   sendMessage(buff);
 }
 
 void Settings::sendErrorMessage(const __FlashStringHelper *msg) {
-  char buff[BUFFSIZE];
-  DynamicJsonDocument json(256);
-  json["Error"] = msg;
-  serializeJson(json, buff, BUFFSIZE);
+  char buff[128];
+  DynamicJsonDocument json(128);
+  json[F("Error")] = msg;
+  serializeJson(json, buff, 128);
   sendMessage(buff);
 }
 

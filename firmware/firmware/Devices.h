@@ -208,5 +208,4 @@ class Devices {
     Devices();
     Devices(const Devices&);
     Devices & operator=(const Devices&);
-    void jsonAddDH(const char *prefix, DewHeater *dh, DynamicJsonDocument &json);
 };

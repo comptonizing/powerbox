@@ -17,29 +17,58 @@ void Devices::update() {
   dewHeater2.update();
 }
 
-void Devices::jsonAddDH(const char *prefix, DewHeater *dh, DynamicJsonDocument &json) {
-  json[prefix]["M"] = dh->currentMode();
-  json[prefix]["DC"] = dh->currentDutyCyclePercent();
-  json[prefix]["T"] = dh->currentTemperature();
-  json[prefix]["dT"] = dh->getOffset();
-  json[prefix]["OD"] = dh->dewpointOffset();
-  json[prefix]["OA"] = dh->ambientOffset();
-  json[prefix]["OM"] = dh->midpointOffset();
-  json[prefix]["F"] = dh->fixedValue();
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
 }
 
 void Devices::state(char *buff, size_t buffSize) {
-  DynamicJsonDocument json(256);
-  json["V"] = voltageSensor.voltage();
-  json["E"]["T"] = environmentSensor.currentTemperature();
-  json["E"]["dT"] = environmentSensor.getOffset();
-  json["E"]["P"] = environmentSensor.currentPressure();
-  json["E"]["H"] = environmentSensor.currentHumidity();
-  json["E"]["D"] = environmentSensor.currentDewpoint();
-  json["R"] = rail12V.isOn();
-  json["A"]["ON"] = adj.isOn();
-  json["A"]["V"] = adj.voltage();
-  jsonAddDH("D1", &Devices::i().dewHeater1, json);
-  jsonAddDH("D2", &Devices::i().dewHeater2, json);
+  StaticJsonDocument<256> json;
+  json[F("V")] = voltageSensor.voltage();
+  json[F("E")][F("T")] = environmentSensor.currentTemperature();
+  json[F("E")][F("dT")] = environmentSensor.getOffset();
+  json[F("E")][F("P")] = environmentSensor.currentPressure();
+  json[F("E")][F("H")] = environmentSensor.currentHumidity();
+  json[F("E")][F("D")] = environmentSensor.currentDewpoint();
+  json[F("R")] = rail12V.isOn();
+  json[F("A")][F("ON")] = adj.isOn();
+  json[F("A")][F("V")] = adj.voltage();
+  json[F("M")] = freeMemory();
+
+  /*
+  auto dh = &Devices::i().dewHeater1;
+  json[F("DH1")][F("M")] = dh->currentMode();
+  json[F("DH1")][F("DC")] = dh->currentDutyCyclePercent();
+  json[F("DH1")][F("T")] = dh->currentTemperature();
+  json[F("DH1")][F("dT")] = dh->getOffset();
+  json[F("DH1")][F("OD")] = dh->dewpointOffset();
+  json[F("DH1")][F("OA")] = dh->ambientOffset();
+  json[F("DH1")][F("OM")] = dh->midpointOffset();
+  json[F("DH1")][F("F")] = dh->fixedValue();
+
+  dh = &Devices::i().dewHeater2;
+  json[F("DH2")][F("M")] = dh->currentMode();
+  json[F("DH2")][F("DC")] = dh->currentDutyCyclePercent();
+  json[F("DH2")][F("T")] = dh->currentTemperature();
+  json[F("DH2")][F("dT")] = dh->getOffset();
+  json[F("DH2")][F("OD")] = dh->dewpointOffset();
+  json[F("DH2")][F("OA")] = dh->ambientOffset();
+  json[F("DH2")][F("OM")] = dh->midpointOffset();
+  json[F("DH2")][F("F")] = dh->fixedValue();
+  */
+
   serializeJson(json, buff, buffSize);
 }
