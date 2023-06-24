@@ -2,8 +2,6 @@
 #include "Settings.h"
 #include "CommandBuffer.h"
 
-#define BUFFSIZE 256
-
 void setup(void)
 {
   Serial.begin(9600);
