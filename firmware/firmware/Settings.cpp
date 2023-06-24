@@ -363,6 +363,7 @@ bool Settings::runDH(const char *cmd) {
       setDewHeater2();
     }
     saveAndAck();
+    return true;
   }
   return false;
 }
