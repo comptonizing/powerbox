@@ -118,7 +118,7 @@ class Adj {
     uint8_t m_address = -1;
     unsigned char m_pin = -1;
     bool m_isOn = false;
-    float m_targetVoltage = 0.0;
+    float m_targetVoltage = 5.0;
     Adafruit_MCP4725 dac;
 };
 

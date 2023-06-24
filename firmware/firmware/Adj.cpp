@@ -28,16 +28,12 @@ unsigned int Adj::output2dac(float voltage) {
 void Adj::setVoltage(float voltage) {
   float out;
   unsigned int adu;
-  if ( voltage < 4.5 ) {
-    voltage = 0.0;
+  if ( voltage < 5.0 ) {
+    voltage = 5.0;
   } else if ( voltage > 12.0 ) {
     voltage = 12.0;
   }
   m_targetVoltage = voltage;
-  if ( voltage == 0.0 ) {
-    off();
-    return;
-  }
   adu = output2dac(voltage);
   dac.setVoltage(adu, false, 100000);
 }
