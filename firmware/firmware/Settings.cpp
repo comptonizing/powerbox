@@ -258,7 +258,7 @@ bool Settings::runRail(const char *cmd) {
 
 bool Settings::runAdj(const char *cmd) {
   bool found = false;
-  float voltage;
+  int voltage;
   if ( strcmp_P(cmd, F("adj on")) == 0 ) {
     m_ADJ_on = true;
     found = true;
@@ -267,8 +267,8 @@ bool Settings::runAdj(const char *cmd) {
     m_ADJ_on = false;
     found = true;
   }
-  if ( sscanf_P(cmd, PSTR("adj %f"), &voltage) == 1 ) {
-    m_ADJ_voltage = voltage;
+  if ( sscanf_P(cmd, PSTR("adj %d"), &voltage) == 1 ) {
+    m_ADJ_voltage = static_cast<float>(voltage) / 100.;
     found = true;
   }
 
@@ -279,12 +279,11 @@ bool Settings::runAdj(const char *cmd) {
   }
   return false;
 }
-
 bool Settings::runEnv(const char *cmd) {
   bool found = false;
-  float offset;
-  if ( sscanf_P(cmd, PSTR("env offset %f"), &offset) == 1 ) {
-    m_environmentSensorOffset = offset;
+  int offset;
+  if ( sscanf(cmd, "env offset %d", &offset) == 1 ) {
+    m_environmentSensorOffset = static_cast<float>(offset) / 100.;
     found = true;
   }
 
@@ -300,7 +299,7 @@ bool Settings::runDH(const char *cmd) {
   unsigned char dh;
   DewHeaterSettings *settings;
   bool found = false;
-  float tmpFloat;
+  int tmpInt;
   unsigned char tmpChar;
   if ( sscanf_P(cmd, PSTR("DH%d")) != 1 ) {
     return false;
@@ -331,28 +330,28 @@ bool Settings::runDH(const char *cmd) {
     found = true;
   }
 
-  if ( sscanf(cmd, PSTR("DH%*d offset %f"), &tmpFloat) == 1 ) {
-    settings->offset = tmpFloat;
+  if ( sscanf_P(cmd, PSTR("DH%*d offset %d"), &tmpInt) == 1 ) {
+    settings->offset = static_cast<float>(tmpInt) / 100.;
     found = true;
   }
 
-  if ( sscanf(cmd, PSTR("DH%*d fixed %f"), &tmpFloat) == 1 ) {
-    settings->fixed = tmpFloat;
+  if ( sscanf_P(cmd, PSTR("DH%*d fixed %d"), &tmpInt) == 1 ) {
+    settings->fixed = static_cast<float>(tmpInt) / 100.;
     found = true;
   }
 
-  if ( sscanf(cmd, PSTR("DH%*d oD %f"), &tmpFloat) == 1 ) {
-    settings->offsetDewpoint = tmpFloat;
+  if ( sscanf_P(cmd, PSTR("DH%*d oD %d"), &tmpInt) == 1 ) {
+    settings->offsetDewpoint = static_cast<float>(tmpInt) / 100.;
     found = true;
   }
 
-  if ( sscanf(cmd, PSTR("DH%*d oA %f"), &tmpFloat) == 1 ) {
-    settings->offsetAmbient = tmpFloat;
+  if ( sscanf_P(cmd, PSTR("DH%*d oA %d"), &tmpInt) == 1 ) {
+    settings->offsetAmbient = static_cast<float>(tmpInt) / 100.;
     found = true;
   }
 
-  if ( sscanf(cmd, PSTR("DH%*d oM %f"), &tmpFloat) == 1 ) {
-    settings->offsetMidpoint = tmpFloat;
+  if ( sscanf(cmd, PSTR("DH%*d oM %d"), &tmpInt) == 1 ) {
+    settings->offsetMidpoint = static_cast<float>(tmpInt) / 100.;
     found = true;
   }
 
