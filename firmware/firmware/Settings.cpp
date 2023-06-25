@@ -167,7 +167,7 @@ void Settings::setDewHeater2() {
     // Both can't be slaves!
     dh2->setFixed((float) 0.0);
   }
-  setDewHeater(dh2, &DH1, dh1);
+  setDewHeater(dh2, &DH2, dh1);
 }
 
 void Settings::setEnvironmentSensor() {
@@ -296,23 +296,24 @@ bool Settings::runEnv(const char *cmd) {
 }
 
 bool Settings::runDH(const char *cmd) {
-  unsigned char dh;
+  int dh;
   DewHeaterSettings *settings;
   bool found = false;
   int tmpInt;
   unsigned char tmpChar;
-  if ( sscanf_P(cmd, PSTR("DH%d")) != 1 ) {
+  if ( sscanf_P(cmd, PSTR("DH%d"), &dh) != 1 ) {
     return false;
   }
   if ( dh == 1 ) {
     settings = &DH1;
-  } if ( dh == 2 ) {
+  } else if ( dh == 2 ) {
     settings = &DH2;
   } else {
     return false;
   }
+  Serial.println("DH: " + String(dh));
 
-  if ( sscanf(cmd, PSTR("DH%*d mode %d"), &tmpChar) == 1 ) {
+  if ( sscanf_P(cmd, PSTR("DH%*d mode %d"), &tmpChar) == 1 ) {
     if ( tmpChar == DewHeater::SLAVE ) {
       DewHeater::Mode other;
       if ( dh == 1 ) {
@@ -388,6 +389,9 @@ bool Settings::runCommand(const char *cmd) {
     return true;
   }
   if ( runEnv(cmd) ) {
+    return true;
+  }
+  if ( runDH(cmd) ) {
     return true;
   }
   runUnknownCommand();
