@@ -151,6 +151,83 @@ bool Powerbox::initProperties() {
   IUFillNumber(&AdjN[0], "ADJV", "V", "%.1f", 5.0, 12.0, 0.1, 0.0);
   IUFillNumberVector(&AdjNP, AdjN, 1, getDeviceName(), "ADJV", "Adjustable voltage",
       MAIN_CONTROL_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillSwitch(&DH1ModeS[MODE_FIXED], "DH1_MODE_FIXED", "Fixed", ISS_OFF);
+  IUFillSwitch(&DH1ModeS[MODE_DEWPOINT], "DH1_MODE_DEWPOINT", "Dewpoint", ISS_OFF);
+  IUFillSwitch(&DH1ModeS[MODE_AMBIENT], "DH1_MODE_AMBIENT", "Ambient", ISS_OFF);
+  IUFillSwitch(&DH1ModeS[MODE_MIDPOINT], "DH1_MODE_MIDPOINT", "Midpoint", ISS_OFF);
+  IUFillSwitch(&DH1ModeS[MODE_SLAVE], "DH1_MODE_SLAVE", "Slave", ISS_OFF);
+  IUFillSwitchVector(&DH1ModeSP, DH1ModeS, 5, getDeviceName(), "DH1_MODE",
+      "Dewheater 1 mode", DEW_TAB, IP_RW, ISR_1OFMANY, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1StatusN[DH_DC], "DH1_DC", "Dutycycle [%]", "%.1f", 0.0, 100.0, 0.1, 0.0);
+  IUFillNumber(&DH1StatusN[DH_TEMPERATURE], "DH1_TEMPERATURE", "Temperature [°C]", "%.1f", -100, 200, 0.1, 0.0);
+  IUFillNumberVector(&DH1StatusNP, DH1StatusN, 2, getDeviceName(), "DH1_STATUS",
+      "Dewheater 1 status", DEW_TAB, IP_RO, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1TemperatureOffsetN[0], "DH1_TEMPERATURE_OFFSET",
+      "Temperature offset [°C]", "%.1f", -10.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH1TemperatureOffsetNP, DH1TemperatureOffsetN, 1, getDeviceName(),
+      "DH1_TEMPERATURE_OFFSET", "Dewheater 1", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1FixedN[0], "DH1_FIXED",
+      "Fixed [%]", "%.1f", 0.0, 100.0, 0.1, 0.0);
+  IUFillNumberVector(&DH1FixedNP, DH1FixedN, 1, getDeviceName(),
+      "DH1_FIXED", "Dewheater 1", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1DewpointOffsetN[0], "DH1_DEWPOINT_OFFSET",
+      "DewpointOffset [°C]", "%.1f", 0.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH1DewpointOffsetNP, DH1DewpointOffsetN, 1, getDeviceName(),
+      "DH1_DEWPOINT_OFFSET", "Dewheater 1", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1AmbientOffsetN[0], "DH1_AMBIENT_OFFSET",
+      "AmbientOffset [°C]", "%.1f", 0.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH1AmbientOffsetNP, DH1AmbientOffsetN, 1, getDeviceName(),
+      "DH1_AMBIENT_OFFSET", "Dewheater 1", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH1MidpointOffsetN[0], "DH1_MIDPOINT_OFFSET",
+      "MidpointOffset [°C]", "%.1f", -10.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH1MidpointOffsetNP, DH1MidpointOffsetN, 1, getDeviceName(),
+      "DH1_MIDPOINT_OFFSET", "Dewheater 1", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillSwitch(&DH2ModeS[MODE_FIXED], "DH2_MODE_FIXED", "Fixed", ISS_OFF);
+  IUFillSwitch(&DH2ModeS[MODE_DEWPOINT], "DH2_MODE_DEWPOINT", "Dewpoint", ISS_OFF);
+  IUFillSwitch(&DH2ModeS[MODE_AMBIENT], "DH2_MODE_AMBIENT", "Ambient", ISS_OFF);
+  IUFillSwitch(&DH2ModeS[MODE_MIDPOINT], "DH2_MODE_MIDPOINT", "Midpoint", ISS_OFF);
+  IUFillSwitch(&DH2ModeS[MODE_SLAVE], "DH2_MODE_SLAVE", "Slave", ISS_OFF);
+  IUFillSwitchVector(&DH2ModeSP, DH2ModeS, 5, getDeviceName(), "DH2_MODE",
+      "Dewheater 2 mode", DEW_TAB, IP_RW, ISR_1OFMANY, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2StatusN[DH_DC], "DH2_DC", "Dutycycle [%]", "%.1f", 0.0, 100.0, 0.1, 0.0);
+  IUFillNumber(&DH2StatusN[DH_TEMPERATURE], "DH2_TEMPERATURE", "Temperature [°C]", "%.1f", -100, 200, 0.1, 0.0);
+  IUFillNumberVector(&DH2StatusNP, DH2StatusN, 2, getDeviceName(), "DH2_STATUS",
+      "Dewheater 2 status", DEW_TAB, IP_RO, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2TemperatureOffsetN[0], "DH2_TEMPERATURE_OFFSET",
+      "Temperature offset [°C]", "%.1f", -10.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH2TemperatureOffsetNP, DH2TemperatureOffsetN, 1, getDeviceName(),
+      "DH2_TEMPERATURE_OFFSET", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2FixedN[0], "DH2_FIXED",
+      "Fixed [%]", "%.1f", 0.0, 100.0, 0.1, 0.0);
+  IUFillNumberVector(&DH2FixedNP, DH2FixedN, 1, getDeviceName(),
+      "DH2_FIXED", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2DewpointOffsetN[0], "DH2_DEWPOINT_OFFSET",
+      "DewpointOffset [°C]", "%.1f", 0.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH2DewpointOffsetNP, DH2DewpointOffsetN, 1, getDeviceName(),
+      "DH2_DEWPOINT_OFFSET", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2AmbientOffsetN[0], "DH2_AMBIENT_OFFSET",
+      "AmbientOffset [°C]", "%.1f", 0.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH2AmbientOffsetNP, DH2AmbientOffsetN, 1, getDeviceName(),
+      "DH2_AMBIENT_OFFSET", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
+  IUFillNumber(&DH2MidpointOffsetN[0], "DH2_MIDPOINT_OFFSET",
+      "MidpointOffset [°C]", "%.1f", -10.0, 10.0, 0.1, 0.0);
+  IUFillNumberVector(&DH2MidpointOffsetNP, DH2MidpointOffsetN, 1, getDeviceName(),
+      "DH2_MIDPOINT_OFFSET", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
+
   return true;
 }
 
@@ -196,6 +273,20 @@ bool Powerbox::updateProperties() {
     defineProperty(&RailSP);
     defineProperty(&AdjSP);
     defineProperty(&AdjNP);
+    defineProperty(&DH1ModeSP);
+    defineProperty(&DH1StatusNP);
+    defineProperty(&DH1TemperatureOffsetNP);
+    defineProperty(&DH1FixedNP);
+    defineProperty(&DH1DewpointOffsetNP);
+    defineProperty(&DH1AmbientOffsetNP);
+    defineProperty(&DH1MidpointOffsetNP);
+    defineProperty(&DH2ModeSP);
+    defineProperty(&DH2StatusNP);
+    defineProperty(&DH2TemperatureOffsetNP);
+    defineProperty(&DH2FixedNP);
+    defineProperty(&DH2DewpointOffsetNP);
+    defineProperty(&DH2AmbientOffsetNP);
+    defineProperty(&DH2MidpointOffsetNP);
     update();
   } else {
     deleteProperty(VoltageNP.name);
@@ -204,6 +295,20 @@ bool Powerbox::updateProperties() {
     deleteProperty(RailSP.name);
     deleteProperty(AdjSP.name);
     deleteProperty(AdjNP.name);
+    deleteProperty(DH1ModeSP.name);
+    deleteProperty(DH1StatusNP.name);
+    deleteProperty(DH1TemperatureOffsetNP.name);
+    deleteProperty(DH1FixedNP.name);
+    deleteProperty(DH1DewpointOffsetNP.name);
+    deleteProperty(DH1AmbientOffsetNP.name);
+    deleteProperty(DH1MidpointOffsetNP.name);
+    deleteProperty(DH2ModeSP.name);
+    deleteProperty(DH2StatusNP.name);
+    deleteProperty(DH2TemperatureOffsetNP.name);
+    deleteProperty(DH2FixedNP.name);
+    deleteProperty(DH2DewpointOffsetNP.name);
+    deleteProperty(DH2AmbientOffsetNP.name);
+    deleteProperty(DH2MidpointOffsetNP.name);
   }
   return true;
 }
@@ -296,7 +401,160 @@ void Powerbox::setAdjVoltage(const json& data) {
   }
 }
 
+void Powerbox::setDH1Mode(const json& data) {
+  try {
+    int mode = data["DH1"]["M"].template get<int>();
+    for (int ii=0; ii<5; ii++) {
+      DH1ModeS[ii].s = mode == ii ? ISS_ON : ISS_OFF;
+    }
+    DH1ModeSP.s = IPS_OK;
+    IDSetSwitch(&DH1ModeSP, nullptr);
+  } catch (...) {
+    DH1ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH1ModeSP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setDH1Status(const json& data) {
+  try {
+    DH1StatusN[DH_DC].value = data["DH1"]["DC"].template get<double>();
+    DH1StatusN[DH_TEMPERATURE].value = data["DH1"]["T"].template get<double>();
+    DH1StatusNP.s = IPS_OK;
+    IDSetNumber(&DH1StatusNP, nullptr);
+  } catch (...) {
+    DH1StatusNP.s = IPS_ALERT;
+    IDSetNumber(&DH1StatusNP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setDH1Params(const json& data) {
+  try {
+    DH1TemperatureOffsetN[0].value = data["DH1"]["dT"].template get<double>();
+    DH1TemperatureOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH1TemperatureOffsetNP, nullptr);
+  } catch (...) {
+    DH1TemperatureOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1TemperatureOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH1FixedN[0].value = data["DH1"]["F"].template get<double>();
+    DH1FixedNP.s = IPS_OK;
+    IDSetNumber(&DH1FixedNP, nullptr);
+  } catch (...) {
+    DH1FixedNP.s = IPS_ALERT;
+    IDSetNumber(&DH1FixedNP, nullptr);
+    throw;
+  }
+  try {
+    DH1DewpointOffsetN[0].value = data["DH1"]["OD"].template get<double>();
+    DH1DewpointOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH1DewpointOffsetNP, nullptr);
+  } catch (...) {
+    DH1DewpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1DewpointOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH1AmbientOffsetN[0].value = data["DH1"]["OA"].template get<double>();
+    DH1AmbientOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH1AmbientOffsetNP, nullptr);
+  } catch (...) {
+    DH1AmbientOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1AmbientOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH1MidpointOffsetN[0].value = data["DH1"]["OM"].template get<double>();
+    DH1MidpointOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH1MidpointOffsetNP, nullptr);
+  } catch (...) {
+    DH1MidpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1MidpointOffsetNP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setDH2Mode(const json& data) {
+  try {
+    int mode = data["DH2"]["M"].template get<int>();
+    for (int ii=0; ii<5; ii++) {
+      DH2ModeS[ii].s = mode == ii ? ISS_ON : ISS_OFF;
+    }
+    DH2ModeSP.s = IPS_OK;
+    IDSetSwitch(&DH2ModeSP, nullptr);
+  } catch (...) {
+    DH2ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH2ModeSP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setDH2Status(const json& data) {
+  try {
+    DH2StatusN[DH_DC].value = data["DH2"]["DC"].template get<double>();
+    DH2StatusN[DH_TEMPERATURE].value = data["DH2"]["T"].template get<double>();
+    DH2StatusNP.s = IPS_OK;
+    IDSetNumber(&DH2StatusNP, nullptr);
+  } catch (...) {
+    DH2StatusNP.s = IPS_ALERT;
+    IDSetNumber(&DH2StatusNP, nullptr);
+    throw;
+  }
+}
+
+void Powerbox::setDH2Params(const json& data) {
+  try {
+    DH2TemperatureOffsetN[0].value = data["DH2"]["dT"].template get<double>();
+    DH2TemperatureOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH2TemperatureOffsetNP, nullptr);
+  } catch (...) {
+    DH2TemperatureOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2TemperatureOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH2FixedN[0].value = data["DH2"]["F"].template get<double>();
+    DH2FixedNP.s = IPS_OK;
+    IDSetNumber(&DH2FixedNP, nullptr);
+  } catch (...) {
+    DH2FixedNP.s = IPS_ALERT;
+    IDSetNumber(&DH2FixedNP, nullptr);
+    throw;
+  }
+  try {
+    DH2DewpointOffsetN[0].value = data["DH2"]["OD"].template get<double>();
+    DH2DewpointOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH2DewpointOffsetNP, nullptr);
+  } catch (...) {
+    DH2DewpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2DewpointOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH2AmbientOffsetN[0].value = data["DH2"]["OA"].template get<double>();
+    DH2AmbientOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH2AmbientOffsetNP, nullptr);
+  } catch (...) {
+    DH2AmbientOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2AmbientOffsetNP, nullptr);
+    throw;
+  }
+  try {
+    DH2MidpointOffsetN[0].value = data["DH2"]["OM"].template get<double>();
+    DH2MidpointOffsetNP.s = IPS_OK;
+    IDSetNumber(&DH2MidpointOffsetNP, nullptr);
+  } catch (...) {
+    DH2MidpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2MidpointOffsetNP, nullptr);
+    throw;
+  }
+}
+
 bool Powerbox::updateFromResponse(const char *rsp) {
+  LOGF_DEBUG("RSP: %s", rsp);
   json data;
   try {
     data = json::parse(rsp);
@@ -315,6 +573,12 @@ bool Powerbox::updateFromResponse(const char *rsp) {
     setRail(data);
     setAdjState(data);
     setAdjVoltage(data);
+    setDH1Mode(data);
+    setDH1Status(data);
+    setDH1Params(data);
+    setDH2Mode(data);
+    setDH2Status(data);
+    setDH2Params(data);
   } catch (...) {
     LOG_ERROR("Could not decode values from device");
     return false;
@@ -398,6 +662,224 @@ bool Powerbox::processAdjSP(ISState * states, char * names[], int n) {
   return true;
 }
 
+bool Powerbox::processDH1Mode(ISState * states, char * names[], int n) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  int mode;
+  const char *actionName = IUFindOnSwitchName(states, names, n);
+  int currentStatus = IUFindOnSwitchIndex(&DH1ModeSP);
+  if ( strcmp(actionName, DH1ModeS[currentStatus].name) == 0 ) {
+    DH1ModeSP.s = IPS_OK;
+    IDSetSwitch(&DH1ModeSP, nullptr);
+    return true;
+  }
+  if ( strcmp(actionName, DH1ModeS[MODE_FIXED].name) == 0 ) {
+    mode = MODE_FIXED;
+  } else if ( strcmp(actionName, DH1ModeS[MODE_DEWPOINT].name) == 0 ) {
+    mode = MODE_DEWPOINT;
+  } else if ( strcmp(actionName, DH1ModeS[MODE_AMBIENT].name) == 0 ) {
+    mode = MODE_AMBIENT;
+  } else if ( strcmp(actionName, DH1ModeS[MODE_MIDPOINT].name) == 0 ) {
+    mode = MODE_MIDPOINT;
+  } else if ( strcmp(actionName, DH1ModeS[MODE_SLAVE].name) == 0 ) {
+    mode = MODE_SLAVE;
+  } else {
+    LOGF_ERROR("Unknown requested switch state: %s", actionName);
+    DH1ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH1ModeSP, nullptr);
+    return false;
+  }
+  snprintf(cmd, CMDBUFF, "DH1 mode %d", mode);
+  LOGF_DEBUG("CMD: %s", cmd);
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH1ModeSP, nullptr);
+    return false;
+  }
+  DH1ModeSP.s = IPS_OK;
+  IDSetSwitch(&DH1ModeSP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH1TemperatureOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH1 offset %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1TemperatureOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1TemperatureOffsetNP, nullptr);
+    return false;
+  }
+  DH1TemperatureOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH1TemperatureOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH1Fixed(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH1 fixed %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1FixedNP.s = IPS_ALERT;
+    IDSetNumber(&DH1FixedNP, nullptr);
+    return false;
+  }
+  DH1FixedNP.s = IPS_OK;
+  IDSetNumber(&DH1FixedNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH1DewpointOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH1 oD %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1DewpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1DewpointOffsetNP, nullptr);
+    return false;
+  }
+  DH1DewpointOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH1DewpointOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH1AmbientOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH1 oA %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1AmbientOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1AmbientOffsetNP, nullptr);
+    return false;
+  }
+  DH1AmbientOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH1AmbientOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH1MidpointOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH1 oM %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH1MidpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH1MidpointOffsetNP, nullptr);
+    return false;
+  }
+  DH1MidpointOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH1MidpointOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2Mode(ISState * states, char * names[], int n) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  int mode;
+  const char *actionName = IUFindOnSwitchName(states, names, n);
+  int currentStatus = IUFindOnSwitchIndex(&DH2ModeSP);
+  if ( strcmp(actionName, DH2ModeS[currentStatus].name) == 0 ) {
+    DH2ModeSP.s = IPS_OK;
+    IDSetSwitch(&DH2ModeSP, nullptr);
+    return true;
+  }
+  if ( strcmp(actionName, DH2ModeS[MODE_FIXED].name) == 0 ) {
+    mode = MODE_FIXED;
+  } else if ( strcmp(actionName, DH2ModeS[MODE_DEWPOINT].name) == 0 ) {
+    mode = MODE_DEWPOINT;
+  } else if ( strcmp(actionName, DH2ModeS[MODE_AMBIENT].name) == 0 ) {
+    mode = MODE_AMBIENT;
+  } else if ( strcmp(actionName, DH2ModeS[MODE_MIDPOINT].name) == 0 ) {
+    mode = MODE_MIDPOINT;
+  } else if ( strcmp(actionName, DH2ModeS[MODE_SLAVE].name) == 0 ) {
+    mode = MODE_SLAVE;
+  } else {
+    LOGF_ERROR("Unknown requested switch state: %s", actionName);
+    DH2ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH2ModeSP, nullptr);
+    return false;
+  }
+  snprintf(cmd, CMDBUFF, "DH2 mode %d", mode);
+  LOGF_DEBUG("CMD: %s", cmd);
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2ModeSP.s = IPS_ALERT;
+    IDSetSwitch(&DH2ModeSP, nullptr);
+    return false;
+  }
+  DH2ModeSP.s = IPS_OK;
+  IDSetSwitch(&DH2ModeSP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2TemperatureOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH2 offset %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2TemperatureOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2TemperatureOffsetNP, nullptr);
+    return false;
+  }
+  DH2TemperatureOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH2TemperatureOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2Fixed(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH2 fixed %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2FixedNP.s = IPS_ALERT;
+    IDSetNumber(&DH2FixedNP, nullptr);
+    return false;
+  }
+  DH2FixedNP.s = IPS_OK;
+  IDSetNumber(&DH2FixedNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2DewpointOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH2 oD %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2DewpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2DewpointOffsetNP, nullptr);
+    return false;
+  }
+  DH2DewpointOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH2DewpointOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2AmbientOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH2 oA %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2AmbientOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2AmbientOffsetNP, nullptr);
+    return false;
+  }
+  DH2AmbientOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH2AmbientOffsetNP, nullptr);
+  return true;
+}
+
+bool Powerbox::processDH2MidpointOffset(double *values) {
+  char rsp[RSPBUFF];
+  char cmd[CMDBUFF];
+  snprintf(cmd, CMDBUFF, "DH2 oM %d", static_cast<int>(100 * values[0]));
+  if ( ! sendCommand(cmd, rsp) || ! updateFromResponse(rsp) ) {
+    DH2MidpointOffsetNP.s = IPS_ALERT;
+    IDSetNumber(&DH2MidpointOffsetNP, nullptr);
+    return false;
+  }
+  DH2MidpointOffsetNP.s = IPS_OK;
+  IDSetNumber(&DH2MidpointOffsetNP, nullptr);
+  return true;
+}
+
 bool Powerbox::ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) {
   if (dev != nullptr && strcmp(dev, getDeviceName()) == 0) {
     if ( strcmp(name, RailSP.name) == 0 ) {
@@ -405,6 +887,12 @@ bool Powerbox::ISNewSwitch(const char * dev, const char * name, ISState * states
     }
     if ( strcmp(name, AdjSP.name) == 0 ) {
       return processAdjSP(states, names, n);
+    }
+    if ( strcmp(name, DH1ModeSP.name) == 0 ) {
+      return processDH1Mode(states, names, n);
+    }
+    if ( strcmp(name, DH2ModeSP.name) == 0 ) {
+      return processDH2Mode(states, names, n);
     }
   }
   return INDI::DefaultDevice::ISNewSwitch(dev, name, states, names, n);
@@ -445,6 +933,38 @@ bool Powerbox::ISNewNumber(const char *dev, const char *name, double *values, ch
     }
     if ( strcmp(name, AdjNP.name) == 0 ) {
       return processAdjNP(values);
+    }
+    // DH1
+    if ( strcmp(name, DH1TemperatureOffsetNP.name) == 0 ) {
+      return processDH1TemperatureOffset(values);
+    }
+    if ( strcmp(name, DH1FixedNP.name) == 0 ) {
+      return processDH1Fixed(values);
+    }
+    if ( strcmp(name, DH1DewpointOffsetNP.name) == 0 ) {
+      return processDH1DewpointOffset(values);
+    }
+    if ( strcmp(name, DH1AmbientOffsetNP.name) == 0 ) {
+      return processDH1AmbientOffset(values);
+    }
+    if ( strcmp(name, DH1MidpointOffsetNP.name) == 0 ) {
+      return processDH1MidpointOffset(values);
+    }
+    // DH2
+    if ( strcmp(name, DH2TemperatureOffsetNP.name) == 0 ) {
+      return processDH2TemperatureOffset(values);
+    }
+    if ( strcmp(name, DH2FixedNP.name) == 0 ) {
+      return processDH2Fixed(values);
+    }
+    if ( strcmp(name, DH2DewpointOffsetNP.name) == 0 ) {
+      return processDH2DewpointOffset(values);
+    }
+    if ( strcmp(name, DH2AmbientOffsetNP.name) == 0 ) {
+      return processDH2AmbientOffset(values);
+    }
+    if ( strcmp(name, DH2MidpointOffsetNP.name) == 0 ) {
+      return processDH2MidpointOffset(values);
     }
   }
   return INDI::DefaultDevice::ISNewNumber(dev, name, values, names, n);

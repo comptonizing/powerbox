@@ -35,6 +35,7 @@ class Powerbox : public INDI::DefaultDevice {
     virtual void TimerHit() override;
   private:
     Connection::Serial *serialConnection{nullptr};
+    static constexpr const char *DEW_TAB = "Dewheaters";
     // Voltage
     INumber VoltageN[1];
     INumberVectorProperty VoltageNP;
@@ -51,6 +52,51 @@ class Powerbox : public INDI::DefaultDevice {
     ISwitchVectorProperty AdjSP;
     INumber AdjN[1];
     INumberVectorProperty AdjNP;
+
+    enum {
+      MODE_FIXED = 0,
+      MODE_DEWPOINT = 1,
+      MODE_AMBIENT = 2,
+      MODE_MIDPOINT = 3,
+      MODE_SLAVE = 4
+    };
+
+    enum {
+      DH_DC = 0,
+      DH_TEMPERATURE = 1
+    };
+
+    // DH1
+    ISwitch DH1ModeS[5];
+    ISwitchVectorProperty DH1ModeSP;
+    INumber DH1StatusN[2];
+    INumberVectorProperty DH1StatusNP;
+    INumber DH1TemperatureOffsetN[1];
+    INumberVectorProperty DH1TemperatureOffsetNP;
+    INumber DH1FixedN[1];
+    INumberVectorProperty DH1FixedNP;
+    INumber DH1DewpointOffsetN[1];
+    INumberVectorProperty DH1DewpointOffsetNP;
+    INumber DH1AmbientOffsetN[1];
+    INumberVectorProperty DH1AmbientOffsetNP;
+    INumber DH1MidpointOffsetN[1];
+    INumberVectorProperty DH1MidpointOffsetNP;
+
+    // DH2
+    ISwitch DH2ModeS[5];
+    ISwitchVectorProperty DH2ModeSP;
+    INumber DH2StatusN[2];
+    INumberVectorProperty DH2StatusNP;
+    INumber DH2TemperatureOffsetN[1];
+    INumberVectorProperty DH2TemperatureOffsetNP;
+    INumber DH2FixedN[1];
+    INumberVectorProperty DH2FixedNP;
+    INumber DH2DewpointOffsetN[1];
+    INumberVectorProperty DH2DewpointOffsetNP;
+    INumber DH2AmbientOffsetN[1];
+    INumberVectorProperty DH2AmbientOffsetNP;
+    INumber DH2MidpointOffsetN[1];
+    INumberVectorProperty DH2MidpointOffsetNP;
 
     enum {
       TEMPERATURE,
@@ -80,8 +126,26 @@ class Powerbox : public INDI::DefaultDevice {
     void setRail(const json& data);
     void setAdjState(const json& data);
     void setAdjVoltage(const json& data);
+    void setDH1Mode(const json& data);
+    void setDH1Status(const json& data);
+    void setDH1Params(const json& data);
+    void setDH2Mode(const json& data);
+    void setDH2Status(const json& data);
+    void setDH2Params(const json& data);
     bool processRailSP(ISState * states, char * names[], int n);
     bool processAdjSP(ISState * states, char * names[], int n);
     bool processEnvOffsetNP(double *values);
     bool processAdjNP(double *values);
+    bool processDH1Mode(ISState * states, char * names[], int n);
+    bool processDH1TemperatureOffset(double *values);
+    bool processDH1Fixed(double *values);
+    bool processDH1DewpointOffset(double *values);
+    bool processDH1AmbientOffset(double *values);
+    bool processDH1MidpointOffset(double *values);
+    bool processDH2Mode(ISState * states, char * names[], int n);
+    bool processDH2TemperatureOffset(double *values);
+    bool processDH2Fixed(double *values);
+    bool processDH2DewpointOffset(double *values);
+    bool processDH2AmbientOffset(double *values);
+    bool processDH2MidpointOffset(double *values);
 };
