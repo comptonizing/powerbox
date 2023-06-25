@@ -3,7 +3,7 @@
 #define MSG_PREFIX '#'
 #define MSG_POSTFIX '$'
 
-#define BUFFSIZE 256
+#define BUFFSIZE 384
 
 #include <string.h>
 #include <HardwareSerial.h>
