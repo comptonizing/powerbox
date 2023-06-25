@@ -13,7 +13,7 @@
 #define ERRBUFF 256
 #define RSPBUFF 1024
 
-#define TIMEOUT 5
+#define TIMEOUT 2
 
 using json = nlohmann::json;
 
