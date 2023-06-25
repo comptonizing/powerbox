@@ -36,7 +36,7 @@ int freeMemory() {
 }
 
 void Devices::state(char *buff, size_t buffSize) {
-  StaticJsonDocument<256> json;
+  StaticJsonDocument<384> json;
   json[F("V")] = voltageSensor.voltage();
   json[F("E")][F("T")] = environmentSensor.currentTemperature();
   json[F("E")][F("dT")] = environmentSensor.getOffset();
@@ -48,7 +48,6 @@ void Devices::state(char *buff, size_t buffSize) {
   json[F("A")][F("V")] = adj.voltage();
   json[F("M")] = freeMemory();
 
-  /*
   auto dh = &Devices::i().dewHeater1;
   json[F("DH1")][F("M")] = dh->currentMode();
   json[F("DH1")][F("DC")] = dh->currentDutyCyclePercent();
@@ -68,7 +67,6 @@ void Devices::state(char *buff, size_t buffSize) {
   json[F("DH2")][F("OA")] = dh->ambientOffset();
   json[F("DH2")][F("OM")] = dh->midpointOffset();
   json[F("DH2")][F("F")] = dh->fixedValue();
-  */
 
   serializeJson(json, buff, buffSize);
 }
