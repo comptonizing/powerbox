@@ -40,6 +40,13 @@ bool Powerbox::checkCrc(const char *rsp) {
   ((char *) &crcGotten)[0] = rsp[len+1];
   ((char *) &crcGotten)[1] = rsp[len+2];
   uint16_t crcCalculated = crcCalc((const void *) rsp, len);
+  char *crcChar = (char *) &crcCalculated;
+  if ( crcChar[0] == '$' ) {
+    crcChar[0] = '1';
+  }
+  if ( crcChar[1] == '$' ) {
+    crcChar[1] = '1';
+  }
   if ( crcGotten == crcCalculated ) {
     return true;
   } else {
