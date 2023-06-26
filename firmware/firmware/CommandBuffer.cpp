@@ -39,6 +39,13 @@ bool CommandBuffer::verifyChecksum() {
   for (int ii=0; ii<len; ii++) {
     crc = _crc16_update(crc, start[ii]);
   }
+  char *crcChar = (char *) &crc;
+  if ( crcChar[0] == '$' ) {
+    crcChar[0] = '1';
+  }
+  if ( crcChar[1] == '$' ) {
+    crcChar[1] = '1';
+  }
   return crc == crcRef;
 }
 

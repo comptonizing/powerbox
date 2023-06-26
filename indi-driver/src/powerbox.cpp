@@ -23,7 +23,13 @@ void Powerbox::cmdCrc(const char *cmd, char *out) {
   out[0] = '#';
   out[len+1] = '\0';
   out[len+2] = ((char *) &crc)[0];
+  if ( out[len+2] == '$' ) {
+    out[len+2] = '1';
+  }
   out[len+3] = ((char *) &crc)[1];
+  if ( out[len+3] == '$' ) {
+    out[len+3] = '1';
+  }
   out[len+4] = '$';
   out[len+5] = '\0';
 }
