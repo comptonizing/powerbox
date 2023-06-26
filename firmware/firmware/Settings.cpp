@@ -190,7 +190,8 @@ void Settings::sendMessage(char *msg) {
   Serial.print(MSG_PREFIX);
   Serial.print(msg);
   Serial.print('\0');
-  Serial.print(crcMsg);
+  Serial.print(crcMsg[0]);
+  Serial.print(crcMsg[1]);
   Serial.print(MSG_POSTFIX);
 }
 
@@ -203,7 +204,8 @@ void Settings::sendMessage(const __FlashStringHelper *msg) {
   Serial.print(MSG_PREFIX);
   Serial.print(msg);
   Serial.print('\0');
-  Serial.print(crcMsg);
+  Serial.print(crcMsg[0]);
+  Serial.print(crcMsg[1]);
   Serial.print(MSG_POSTFIX);
 }
 
