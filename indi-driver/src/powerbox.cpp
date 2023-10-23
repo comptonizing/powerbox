@@ -6,6 +6,7 @@ using json = nlohmann::json;
 static std::unique_ptr<Powerbox> shelyakDriver(new Powerbox());
 
 Powerbox::Powerbox() {
+  setDefaultPollingPeriod(1000);
   setVersion(1, 2);
 }
 
