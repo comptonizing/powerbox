@@ -1,3 +1,3 @@
-bin_PROGRAMS=indi_powerbox
+bin_PROGRAMS=indi_pollux_powerbox
 
-indi_powerbox_SOURCES=powerbox.h powerbox.cpp
+indi_pollux_powerbox_SOURCES=powerbox.h powerbox.cpp

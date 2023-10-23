@@ -2,7 +2,7 @@
 <driversList>
    <devGroup group="Auxiliary">
      <device label="Powerbox" manufacturer="Pollux Astro">
-       <driver name="Powerbox">indi_powerbox</driver>
+       <driver name="Powerbox">indi_pollux_powerbox</driver>
          <version>1.0</version>
      </device>
    </devGroup>
