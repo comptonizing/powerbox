@@ -88,7 +88,7 @@ void EnvironmentSensor::updateHumidity() {
 }
 
 void EnvironmentSensor::update(bool force) {
-  if ( (millis() - m_lastUpdate) >= m_updateInterval || force ) {
+  if ( (unsigned long)(millis() - m_lastUpdate) >= m_updateInterval || force ) {
     updateTemperature();
     updatePressure();
     updateHumidity();
