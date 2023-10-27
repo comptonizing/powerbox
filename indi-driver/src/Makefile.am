@@ -24,3 +24,5 @@
 bin_PROGRAMS=indi_pollux_powerbox
 
 indi_pollux_powerbox_SOURCES=powerbox.h powerbox.cpp
+
+EXTRA_DIST=json.hpp

@@ -18,4 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 xmldir=@prefix@/share/indi/
-xml_DATA=indi_powerbox.xml
+xml_DATA=indi_pollux_powerbox.xml
+
+EXTRA_DIST=indi_pollux_powerbox.xml
