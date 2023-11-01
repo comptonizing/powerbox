@@ -1094,6 +1094,10 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
                 case IDDH1DutyCycle:
                     return Math.Round(lastJson["DH1"]["DC"].GetValue<double>());
                 case IDDH1Temperature:
+                    if (lastJson["DH1"]["T"] == null)
+                    {
+                        return double.NaN;
+                    }
                     return lastJson["DH1"]["T"].GetValue<double>();
                 case IDDH1TemperatureOffset:
                     return lastJson["DH1"]["dT"].GetValue<double>();
@@ -1110,6 +1114,10 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
                 case IDDH2DutyCycle:
                     return Math.Round(lastJson["DH2"]["DC"].GetValue<double>());
                 case IDDH2Temperature:
+                    if (lastJson["DH2"]["T"] == null)
+                    {
+                        return double.NaN;
+                    }
                     return lastJson["DH2"]["T"].GetValue<double>();
                 case IDDH2TemperatureOffset:
                     return lastJson["DH2"]["dT"].GetValue<double>();
