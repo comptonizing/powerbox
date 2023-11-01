@@ -12,5 +12,5 @@ void loop(void)
 {
   Settings::i().loop();
 
-  delay(100);
+  // delay(100);
 }
