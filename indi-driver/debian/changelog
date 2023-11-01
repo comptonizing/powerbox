@@ -1,0 +1,11 @@
+indi-pollux-powerbox (0.2-1) jammy; urgency=low
+
+  * Fix temperature reporting in case no probe is attached to a dewheater
+
+ -- Philipp Weber <philipp@whyisitso.de>  Fri, 27 Oct 2023 23:49:47 +0200
+
+indi-pollux-powerbox (0.1-1) jammy; urgency=low
+
+  * Initial release.
+
+ -- Philipp Weber <philipp@whyisitso.de>  Fri, 27 Oct 2023 23:49:47 +0200
