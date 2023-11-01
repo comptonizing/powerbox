@@ -29,7 +29,7 @@ static std::unique_ptr<Powerbox> shelyakDriver(new Powerbox());
 
 Powerbox::Powerbox() {
   setDefaultPollingPeriod(1000);
-  setVersion(1, 2);
+  setVersion(0, 2);
 }
 
 Powerbox::~Powerbox() {
@@ -598,7 +598,7 @@ void Powerbox::setDH2Params(const json& data) {
 }
 
 bool Powerbox::updateFromResponse(const char *rsp) {
-  LOGF_DEBUG("RSP: %s", rsp);
+  LOGF_INFO("RSP: %s", rsp);
   json data;
   try {
     data = json::parse(rsp);
