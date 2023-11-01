@@ -455,7 +455,11 @@ void Powerbox::setDH1Mode(const json& data) {
 void Powerbox::setDH1Status(const json& data) {
   try {
     DH1StatusN[DH_DC].value = data["DH1"]["DC"].template get<double>();
-    DH1StatusN[DH_TEMPERATURE].value = data["DH1"]["T"].template get<double>();
+	if ( data["DH1"]["T"].is_null() ) {
+      DH1StatusN[DH_TEMPERATURE].value = NAN;
+	} else {
+      DH1StatusN[DH_TEMPERATURE].value = data["DH1"]["T"].template get<double>();
+	}
     DH1StatusNP.s = IPS_OK;
     IDSetNumber(&DH1StatusNP, nullptr);
   } catch (...) {
@@ -531,7 +535,11 @@ void Powerbox::setDH2Mode(const json& data) {
 void Powerbox::setDH2Status(const json& data) {
   try {
     DH2StatusN[DH_DC].value = data["DH2"]["DC"].template get<double>();
-    DH2StatusN[DH_TEMPERATURE].value = data["DH2"]["T"].template get<double>();
+	if ( data["DH2"]["T"].is_null() ) {
+      DH2StatusN[DH_TEMPERATURE].value = NAN;
+	} else {
+      DH2StatusN[DH_TEMPERATURE].value = data["DH2"]["T"].template get<double>();
+	}
     DH2StatusNP.s = IPS_OK;
     IDSetNumber(&DH2StatusNP, nullptr);
   } catch (...) {
