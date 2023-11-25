@@ -37,13 +37,8 @@ Name: "{cf}\ASCOM\Uninstall\Switch\PolluxAstro Powerbox"
 Source: "bin\Release\ASCOM.PolluxAstroPowerbox.exe"; DestDir: "{app}"
 Source: "bin\Release\*.dll"; DestDir: "{app}"
 Source: "bin\Release\ASCOM.PolluxAstroPowerbox.exe.config"; DestDir: "{app}"
+Source: "..\..\doc\manual.pdf"; DestDir: "{app}"; Flags: isreadme
 
-
-
-; TODO: Add driver assemblies into the ServedClasses folder
-; Require a read-me HTML to appear after installation, maybe driver's Help doc
-Source: "ReadmePolluxAstroPowerbox.htm"; DestDir: "{app}"; Flags: isreadme
-; TODO: Add other files needed by your driver here (add subfolders above)
 
 
 ; Only if driver is .NET
