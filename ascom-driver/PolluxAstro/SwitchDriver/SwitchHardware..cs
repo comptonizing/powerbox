@@ -44,7 +44,7 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         private static string DriverProgId = ""; // ASCOM DeviceID (COM ProgID) for this driver, the value is set by the driver's class initialiser.
         private static string DriverDescription = ""; // The value is set by the driver's class initialiser.
         internal static string comPort; // COM port name (if required)
-        private static bool connectedState; // Local server's connected state
+        private static bool connectedState = false; // Local server's connected state
         private static bool runOnce = false; // Flag to enable "one-off" activities only to run once.
         internal static Util utilities; // ASCOM Utilities object for use as required
         internal static AstroUtils astroUtilities; // ASCOM AstroUtilities object for use as required
@@ -58,6 +58,7 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         internal static JsonNode lastJson = null;
         internal static Mutex updateInnerMutex = new Mutex();
         internal static Mutex updateOuterMutex = new Mutex();
+        internal static Mutex connectedMutex = new Mutex();
 
         internal static void checkDeviceError(string rsp)
         {
@@ -298,8 +299,11 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         public static void SetupDialog()
         {
             // Don't permit the setup dialogue if already connected
-            if (IsConnected)
-                MessageBox.Show("Already connected, just press OK");
+            if ( Connected )
+            {
+                LogMessage("SetupDialog", "Already connected");
+                MessageBox.Show("Already connected, just press OKaaayyyy");
+            }
 
             using (SetupDialogForm F = new SetupDialogForm(tl))
             {
@@ -485,44 +489,65 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         {
             get
             {
-                LogMessage("Connected", $"Get {IsConnected}");
-                return IsConnected;
+                connectedMutex.WaitOne();
+                LogMessage("Connected", $"Get {connectedState}");
+                bool val = connectedState;
+                connectedMutex.ReleaseMutex();
+                return val;
             }
             set
             {
-                LogMessage("Connected", $"Set {value}");
-                if (value == IsConnected)
-                    return;
-
-                if (value)
+                connectedMutex.WaitOne();
+                try
                 {
-                    LogMessage("Connected Set", $"Connecting to port {comPort}");
-                    if (port != null)
+                    LogMessage("Connected", $"Set {value}");
+                    if (value == connectedState)
+                        return;
+
+                    if (value)
                     {
-                        port.Connected = false;
-                        port.Dispose();
+                        LogMessage("Connected Set", $"Connecting to port {comPort}");
+                        if (port != null)
+                        {
+                            port.Connected = false;
+                            port.Dispose();
+                        }
+                        port = new ASCOM.Utilities.Serial();
+                        port.PortName = comPort;
+                        port.Speed = ASCOM.Utilities.SerialSpeed.ps115200;
+                        port.ReceiveTimeoutMs = 2000;
+                        port.Connected = true;
+                        try
+                        {
+                            string rsp = CommandString("status", false);
+                            checkDeviceError(rsp);
+                        }
+                        catch
+                        {
+                            LogMessage("Conencted set", "Caught error, setting connectedState to false");
+                            connectedState = false;
+                            LogMessage("Connected set", $"connectedState is now ${connectedState}");
+                            port.Connected = false;
+                            port.Dispose();
+                            port = null;
+                            throw;
+                        }
+                        connectedState = true;
                     }
-                    port = new ASCOM.Utilities.Serial();
-                    port.PortName = comPort;
-                    port.Speed = ASCOM.Utilities.SerialSpeed.ps115200;
-                    port.ReceiveTimeoutMs = 2000;
-                    port.Connected = true;
-
-                    string rsp = CommandString("status", false);
-                    checkDeviceError(rsp);
-
-                    connectedState = true;
-                }
-                else
+                    else
+                    {
+                        LogMessage("Connected Set", $"Disconnecting from port {comPort}");
+                        if ( port != null )
+                        {
+                            port.Connected = false;
+                            port.Dispose();
+                            port = null;
+                        }
+                        connectedState = false;
+                    }
+                } finally
                 {
-                    LogMessage("Connected Set", $"Disconnecting from port {comPort}");
-                    if ( port != null )
-                    {
-                        port.Connected = false;
-                        port.Dispose();
-                        port = null;
-                    }
-                    connectedState = false;
+                    connectedMutex.ReleaseMutex();
                 }
             }
         }
@@ -1242,24 +1267,12 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         // Useful methods that can be used as required to help with driver development
 
         /// <summary>
-        /// Returns true if there is a valid connection to the driver hardware
-        /// </summary>
-        private static bool IsConnected
-        {
-            get
-            {
-                // TODO check that the driver hardware connection exists and is connected to the hardware
-                return connectedState;
-            }
-        }
-
-        /// <summary>
         /// Use this function to throw an exception if we aren't connected to the hardware
         /// </summary>
         /// <param name="message"></param>
         private static void CheckConnected(string message)
         {
-            if (!IsConnected)
+            if (!Connected)
             {
                 throw new NotConnectedException(message);
             }

@@ -380,7 +380,15 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
                     {
                         connectedState = true;
                         LogMessage("Connected Set", "Connecting to device");
-                        SwitchHardware.Connected = true;
+                        try
+                        {
+                            SwitchHardware.Connected = true;
+                        }
+                        catch
+                        {
+                            connectedState = false;
+                            throw;
+                        }
                     }
                     else
                     {
