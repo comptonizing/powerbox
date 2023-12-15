@@ -39,7 +39,7 @@ namespace ASCOM.PolluxAstroPowerbox.Switch
         internal const string comPortProfileName = "COM Port";
         internal const string comPortDefault = "COM1";
         internal const string traceStateProfileName = "Trace Level";
-        internal const string traceStateDefault = "true";
+        internal const string traceStateDefault = "false";
 
         private static string DriverProgId = ""; // ASCOM DeviceID (COM ProgID) for this driver, the value is set by the driver's class initialiser.
         private static string DriverDescription = ""; // The value is set by the driver's class initialiser.
