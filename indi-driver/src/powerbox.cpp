@@ -29,7 +29,7 @@ static std::unique_ptr<Powerbox> shelyakDriver(new Powerbox());
 
 Powerbox::Powerbox() {
   setDefaultPollingPeriod(1000);
-  setVersion(0, 2);
+  setVersion(1,0);
 }
 
 Powerbox::~Powerbox() {
