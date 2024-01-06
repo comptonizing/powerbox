@@ -598,7 +598,6 @@ void Powerbox::setDH2Params(const json& data) {
 }
 
 bool Powerbox::updateFromResponse(const char *rsp) {
-  LOGF_INFO("RSP: %s", rsp);
   json data;
   try {
     data = json::parse(rsp);
