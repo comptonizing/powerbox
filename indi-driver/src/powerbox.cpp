@@ -27,7 +27,7 @@ using json = nlohmann::json;
 
 static std::unique_ptr<Powerbox> shelyakDriver(new Powerbox());
 
-Powerbox::Powerbox() {
+Powerbox::Powerbox() : WI(this) {
   setDefaultPollingPeriod(1000);
   setVersion(1,0);
 }
@@ -147,7 +147,8 @@ bool Powerbox::Handshake() {
 
 bool Powerbox::initProperties() {
   INDI::DefaultDevice::initProperties();
-  setDriverInterface(AUX_INTERFACE);
+  WI::initProperties(ENVIRONMENT_TAB, ENVIRONMENT_TAB);
+  setDriverInterface(AUX_INTERFACE | WEATHER_INTERFACE);
   addDebugControl();
   addConfigurationControl();
   setDefaultPollingPeriod(500);
@@ -264,6 +265,11 @@ bool Powerbox::initProperties() {
   IUFillNumberVector(&DH2MidpointOffsetNP, DH2MidpointOffsetN, 1, getDeviceName(),
       "DH2_MIDPOINT_OFFSET", "Dewheater 2", DEW_TAB, IP_RW, TIMEOUT, IPS_IDLE);
 
+  addParameter("WEATHER_TEMPERATURE", "Temperature (C)", -30, 60, 15);
+  addParameter("WEATHER_HUMIDITY", "Humidity %", 0, 100, 15);
+  addParameter("WEATHER_DEWPOINT", "Dew Point (C)", -30, 60, 15);
+  setCriticalParameter("WEATHER_TEMPERATURE");
+
   return true;
 }
 
@@ -323,6 +329,7 @@ bool Powerbox::updateProperties() {
     defineProperty(&DH2DewpointOffsetNP);
     defineProperty(&DH2AmbientOffsetNP);
     defineProperty(&DH2MidpointOffsetNP);
+    WI::updateProperties();
     update();
   } else {
     deleteProperty(VoltageNP.name);
@@ -345,6 +352,7 @@ bool Powerbox::updateProperties() {
     deleteProperty(DH2DewpointOffsetNP.name);
     deleteProperty(DH2AmbientOffsetNP.name);
     deleteProperty(DH2MidpointOffsetNP.name);
+    WI::updateProperties();
   }
   return true;
 }
@@ -363,12 +371,29 @@ void Powerbox::setVoltage(const json& data) {
 
 void Powerbox::setEnvironment(const json& data) {
   try {
+    auto lastTemp = EnvN[TEMPERATURE].value;
+    auto lastHum = EnvN[HUMIDITY].value;
+    auto lastDewp = EnvN[DEWPOINT].value;
     EnvN[TEMPERATURE].value = data["E"]["T"].template get<double>();
     EnvN[HUMIDITY].value = data["E"]["H"].template get<double>();
     EnvN[PRESSURE].value = data["E"]["P"].template get<double>();
     EnvN[DEWPOINT].value = data["E"]["D"].template get<double>();
     EnvNP.s = IPS_OK;
     IDSetNumber(&EnvNP, nullptr);
+    setParameterValue("WEATHER_TEMPERATURE", EnvN[TEMPERATURE].value);
+    setParameterValue("WEATHER_HUMIDITY", EnvN[HUMIDITY].value);
+    setParameterValue("WEATHER_DEWPOINT", EnvN[DEWPOINT].value);
+    if (
+	lastTemp != EnvN[TEMPERATURE].value ||
+	lastHum != EnvN[HUMIDITY].value ||
+	lastDewp != EnvN[DEWPOINT].value
+       ) {
+	    if (WI::syncCriticalParameters()) {
+		    IDSetLight(&critialParametersLP, nullptr);
+		    ParametersNP.s = IPS_OK;
+		    IDSetNumber(&ParametersNP, nullptr);
+	    }
+    }
   } catch (...) {
     EnvNP.s = IPS_ALERT;
     IDSetNumber(&EnvNP, nullptr);
@@ -1008,6 +1033,9 @@ bool Powerbox::ISNewNumber(const char *dev, const char *name, double *values, ch
     }
     if ( strcmp(name, DH2MidpointOffsetNP.name) == 0 ) {
       return processDH2MidpointOffset(values);
+    }
+    if (strstr(name, "WEATHER_")) {
+      return WI::processNumber(dev, name, values, names, n);
     }
   }
   return INDI::DefaultDevice::ISNewNumber(dev, name, values, names, n);
