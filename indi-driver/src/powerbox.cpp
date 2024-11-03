@@ -21,7 +21,6 @@
  */
 
 #include "powerbox.h"
-#include <defaultdevice.h>
 
 using json = nlohmann::json;
 
@@ -330,7 +329,10 @@ bool Powerbox::updateProperties() {
     defineProperty(&DH2AmbientOffsetNP);
     defineProperty(&DH2MidpointOffsetNP);
     WI::updateProperties();
-    update();
+    if ( ! update() ) {
+		LOG_ERROR("Device communication failed!");
+		return false;
+	}
   } else {
     deleteProperty(VoltageNP.name);
     deleteProperty(EnvNP.name);
@@ -389,10 +391,10 @@ void Powerbox::setEnvironment(const json& data) {
 	lastDewp != EnvN[DEWPOINT].value
        ) {
 	    if (WI::syncCriticalParameters()) {
-		    IDSetLight(&critialParametersLP, nullptr);
-		    ParametersNP.s = IPS_OK;
-		    IDSetNumber(&ParametersNP, nullptr);
+			critialParametersLP.apply();
 	    }
+		ParametersNP.setState(IPS_OK);
+		ParametersNP.apply();
     }
   } catch (...) {
     EnvNP.s = IPS_ALERT;
@@ -647,6 +649,9 @@ bool Powerbox::updateFromResponse(const char *rsp) {
     setDH2Mode(data);
     setDH2Status(data);
     setDH2Params(data);
+  } catch (std::exception &e) {
+	  LOGF_ERROR("Could not decode values from device: %s", e.what());
+	  return false;
   } catch (...) {
     LOG_ERROR("Could not decode values from device");
     return false;
@@ -665,7 +670,7 @@ bool Powerbox::update() {
 
 void Powerbox::TimerHit() {
   if ( isConnected() ) {
-    update();
+	  update(); // can ignore return code here
   }
   SetTimer(getCurrentPollingPeriod());
 }
@@ -1039,4 +1044,12 @@ bool Powerbox::ISNewNumber(const char *dev, const char *name, double *values, ch
     }
   }
   return INDI::DefaultDevice::ISNewNumber(dev, name, values, names, n);
+}
+
+IPState Powerbox::updateWeather() {
+	if ( ! update() ) {
+		return IPS_ALERT;
+	}
+	// setParameterValue already called in setEnvironment()
+	return IPS_OK;
 }

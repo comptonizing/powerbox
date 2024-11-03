@@ -26,6 +26,7 @@
 #include <termios.h>
 
 #include <indibase.h>
+#include <indiweatherinterface.h>
 #include <defaultdevice.h>
 #include <connectionplugins/connectionserial.h>
 
@@ -43,7 +44,7 @@ namespace Connection {
   class Serial;
 }
 
-class Powerbox : public INDI::DefaultDevice {
+class Powerbox : public INDI::DefaultDevice, public INDI::WeatherInterface {
   public:
     Powerbox();
     ~Powerbox();
@@ -55,9 +56,11 @@ class Powerbox : public INDI::DefaultDevice {
     virtual bool ISNewSwitch(const char * dev, const char * name, ISState * states, char * names[], int n) override;
     virtual bool ISNewNumber(const char *dev, const char *name, double *values, char *names[], int n) override;
     virtual void TimerHit() override;
+	virtual IPState updateWeather() override;
   private:
     Connection::Serial *serialConnection{nullptr};
     static constexpr const char *DEW_TAB = "Dewheaters";
+	static constexpr const char *ENVIRONMENT_TAB {"Environment"};
     // Voltage
     INumber VoltageN[1];
     INumberVectorProperty VoltageNP;
